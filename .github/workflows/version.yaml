@@ -4,8 +4,6 @@ name: version-tag
 
 permissions:
   contents: write
-  packages: write
-  id-token: write
 
 on:
   push:
@@ -20,7 +18,7 @@ jobs:
 
       - name: version
         run: |
-          VERSION=$( date '+%y.%m%d.%H%M' | sed 's/\.0*/./g' )
+          VERSION=v$( date '+%y.%m%d.%H%M' | sed 's/\.0*/./g' )
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: actions/checkout@v4
