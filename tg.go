@@ -177,6 +177,9 @@ func SendMessage(tgtoken string, req SendMessageRequest) (msg *Message, err erro
 	if DEBUG {
 		log("DEBUG req==%#v", req)
 	}
+	if req.ParseMode == "" {
+		req.ParseMode = ParseMode
+	}
 	reqjson, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -214,6 +217,9 @@ func SendPhoto(tgtoken string, req SendPhotoRequest) (msg *Message, err error) {
 
 	if DEBUG {
 		log("DEBUG req==%#v", req)
+	}
+	if req.ParseMode == "" {
+		req.ParseMode = ParseMode
 	}
 	reqjson, err := json.Marshal(req)
 	if err != nil {
