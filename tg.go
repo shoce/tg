@@ -145,6 +145,10 @@ type Response struct {
 	Result      *Message `json:"result"`
 }
 
+type LinkPreviewOptions struct {
+	IsDisabled bool `json:"is_disabled"`
+}
+
 type SendMessageRequest struct {
 	// https://core.telegram.org/bots/api#sendmessage
 
@@ -155,9 +159,8 @@ type SendMessageRequest struct {
 	ParseMode        string `json:"parse_mode,omitempty"`
 
 	DisableNotification bool `json:"disable_notification,omitempty"`
-	LinkPreviewOptions  struct {
-		IsDisabled bool `json:"is_disabled"`
-	} `json:"link_preview_options,omitempty"`
+
+	LinkPreviewOptions LinkPreviewOptions `json:"link_preview_options,omitempty"`
 }
 
 type SendMessageResponse struct {
