@@ -191,7 +191,7 @@ func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 type SendPhotoFileRequest struct {
 	ChatId   string
 	FileName string
-	Photo    []byte
+	Photo    *bytes.Buffer
 }
 
 func SendPhotoFile(req SendPhotoFileRequest) (photo []PhotoSize, err error) {
@@ -210,7 +210,7 @@ func SendPhotoFile(req SendPhotoFileRequest) (photo []PhotoSize, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("CreateFormFile photo: %v", err)
 	}
-	_, err = io.Copy(formWr, bytes.NewBuffer(req.Photo))
+	_, err = io.Copy(formWr, req.Photo)
 	if err != nil {
 		return nil, fmt.Errorf("Copy photo: %v", err)
 	}
@@ -315,8 +315,8 @@ type SendAudioFileRequest struct {
 	Title     string
 	Duration  time.Duration
 	FileName  string
-	Audio     []byte
-	Thumb     []byte
+	Audio     *bytes.Buffer
+	Thumb     *bytes.Buffer
 }
 
 func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
@@ -355,7 +355,7 @@ func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("CreateFormFile audio: %v", err)
 	}
-	_, err = io.Copy(formWr, bytes.NewBuffer(req.Audio))
+	_, err = io.Copy(formWr, req.Audio)
 	if err != nil {
 		return nil, fmt.Errorf("Copy audio: %v", err)
 	}
@@ -365,7 +365,7 @@ func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("CreateFormFile thumb: %v", err)
 	}
-	_, err = io.Copy(formWr, bytes.NewBuffer(req.Thumb))
+	_, err = io.Copy(formWr, req.Thumb)
 	if err != nil {
 		return nil, fmt.Errorf("Copy thumb: %v", err)
 	}
