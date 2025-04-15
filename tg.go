@@ -14,8 +14,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -23,16 +25,16 @@ import (
 const (
 	NL = "\n"
 
-	ApiUrlBase = "https://api.telegram.org"
-
 	// https://core.telegram.org/bots/api#formatting-options
 	ParseMode = "MarkdownV2"
 )
 
 var (
-	DEBUG bool
-
 	HttpClient = &http.Client{}
+
+	DEBUG      = false
+	ApiUrlBase = "https://api.telegram.org"
+	TgToken    = ""
 )
 
 func Esc(text string) string {
@@ -46,28 +48,6 @@ func Esc(text string) string {
 func Bold(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	return "*" + Esc(text) + "*"
-}
-
-type Document struct {
-	// https://core.telegram.org/bots/api#document
-}
-
-type VideoNote struct {
-	// https://core.telegram.org/bots/api#videonote
-}
-
-type Voice struct {
-	// https://core.telegram.org/bots/api#voice
-}
-
-type Location struct {
-	// https://core.telegram.org/bots/api#location
-	Latitude             float64 `json:"latitude"`
-	Longitude            float64 `json:"longitude"`
-	HorizontalAccuracy   float64 `json:"horizontal_accuracy"`
-	LivePeriod           int64   `json:"live_period"`
-	Heading              int64   `json:"heading"`
-	ProximityAlertRadius int64   `json:"proximity_alert_radius"`
 }
 
 type Message struct {
@@ -117,17 +97,6 @@ type PhotoSize struct {
 	FileSize     int64  `json:"file_size"`
 }
 
-type Audio struct {
-	FileId       string    `json:"file_id"`
-	FileUniqueId string    `json:"file_unique_id"`
-	Duration     int64     `json:"duration"`
-	Performer    string    `json:"performer"`
-	Title        string    `json:"title"`
-	MimeType     string    `json:"mime_type"`
-	FileSize     int64     `json:"file_size"`
-	Thumb        PhotoSize `json:"thumb"`
-}
-
 type Video struct {
 	FileId       string    `json:"file_id"`
 	FileUniqueId string    `json:"file_unique_id"`
@@ -137,6 +106,28 @@ type Video struct {
 	MimeType     string    `json:"mime_type"`
 	FileSize     int64     `json:"file_size"`
 	Thumb        PhotoSize `json:"thumb"`
+}
+
+type Document struct {
+	// https://core.telegram.org/bots/api#document
+}
+
+type VideoNote struct {
+	// https://core.telegram.org/bots/api#videonote
+}
+
+type Voice struct {
+	// https://core.telegram.org/bots/api#voice
+}
+
+type Location struct {
+	// https://core.telegram.org/bots/api#location
+	Latitude             float64 `json:"latitude"`
+	Longitude            float64 `json:"longitude"`
+	HorizontalAccuracy   float64 `json:"horizontal_accuracy"`
+	LivePeriod           int64   `json:"live_period"`
+	Heading              int64   `json:"heading"`
+	ProximityAlertRadius int64   `json:"proximity_alert_radius"`
 }
 
 type LinkPreviewOptions struct {
@@ -163,7 +154,7 @@ type Response struct {
 	Result      *Message `json:"result"`
 }
 
-func SendMessage(tgtoken string, req SendMessageRequest) (msg *Message, err error) {
+func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendmessage
 
 	if DEBUG {
@@ -179,7 +170,7 @@ func SendMessage(tgtoken string, req SendMessageRequest) (msg *Message, err erro
 
 	var resp Response
 	err = postJson(
-		fmt.Sprintf("%s/bot%s/sendMessage", ApiUrlBase, tgtoken),
+		fmt.Sprintf("%s/bot%s/sendMessage", ApiUrlBase, TgToken),
 		bytes.NewBuffer(reqjson),
 		&resp,
 	)
@@ -197,6 +188,75 @@ func SendMessage(tgtoken string, req SendMessageRequest) (msg *Message, err erro
 	return msg, nil
 }
 
+type SendPhotoFileRequest struct {
+	ChatId   string
+	FileName string
+	Photo    []byte
+}
+
+func SendPhotoFile(req SendPhotoFileRequest) (photo []PhotoSize, err error) {
+	var mpartBuf bytes.Buffer
+	mpart := multipart.NewWriter(&mpartBuf)
+	var formWr io.Writer
+
+	// chat_id
+	err = mpart.WriteField("chat_id", req.ChatId)
+	if err != nil {
+		return nil, fmt.Errorf("WriteField chat_id: %v", err)
+	}
+
+	// photo
+	formWr, err = mpart.CreateFormFile("photo", req.FileName)
+	if err != nil {
+		return nil, fmt.Errorf("CreateFormFile photo: %v", err)
+	}
+	_, err = io.Copy(formWr, bytes.NewBuffer(req.Photo))
+	if err != nil {
+		return nil, fmt.Errorf("Copy photo: %v", err)
+	}
+
+	err = mpart.Close()
+	if err != nil {
+		return nil, fmt.Errorf("multipartWriter.Close: %v", err)
+	}
+
+	resp, err := HttpClient.Post(
+		fmt.Sprintf("%s/bot%s/sendPhoto", ApiUrlBase, TgToken),
+		mpart.FormDataContentType(),
+		&mpartBuf,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Post: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var tgresp Response
+	err = json.NewDecoder(resp.Body).Decode(&tgresp)
+	if err != nil {
+		return nil, fmt.Errorf("Decode: %v", err)
+	}
+	if !tgresp.Ok {
+		return nil, fmt.Errorf("sendPhoto: %s", tgresp.Description)
+	}
+
+	msg := tgresp.Result
+	msg.Id = fmt.Sprintf("%d", msg.MessageId)
+
+	if len(msg.Photo) == 0 {
+		return nil, fmt.Errorf("sendPhoto: Photo array empty")
+	}
+
+	err = DeleteMessage(DeleteMessageRequest{
+		ChatId:    req.ChatId,
+		MessageId: msg.MessageId,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("DeleteMessage %d: %v", msg.MessageId, err)
+	}
+
+	return msg.Photo, nil
+}
+
 type SendPhotoRequest struct {
 	ChatId    string `json:"chat_id"`
 	Photo     string `json:"photo"`
@@ -204,11 +264,11 @@ type SendPhotoRequest struct {
 	ParseMode string `json:"parse_mode"`
 }
 
-func SendPhoto(tgtoken string, req SendPhotoRequest) (msg *Message, err error) {
+func SendPhoto(req SendPhotoRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendphoto
 
 	if DEBUG {
-		log("DEBUG req==%#v", req)
+		log("DEBUG SendPhoto req==%#v", req)
 	}
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
@@ -220,7 +280,7 @@ func SendPhoto(tgtoken string, req SendPhotoRequest) (msg *Message, err error) {
 
 	var resp Response
 	err = postJson(
-		fmt.Sprintf("%s/bot%s/sendPhoto", ApiUrlBase, tgtoken),
+		fmt.Sprintf("%s/bot%s/sendPhoto", ApiUrlBase, TgToken),
 		bytes.NewBuffer(reqjson),
 		&resp,
 	)
@@ -238,12 +298,167 @@ func SendPhoto(tgtoken string, req SendPhotoRequest) (msg *Message, err error) {
 	return msg, nil
 }
 
-type DeleteMessageRequest struct {
-	ChatId    int64 `json:"chat_id"`
-	MessageId int64 `json:"message_id"`
+type Audio struct {
+	FileId       string    `json:"file_id"`
+	FileUniqueId string    `json:"file_unique_id"`
+	Duration     int64     `json:"duration"`
+	Performer    string    `json:"performer"`
+	Title        string    `json:"title"`
+	MimeType     string    `json:"mime_type"`
+	FileSize     int64     `json:"file_size"`
+	Thumb        PhotoSize `json:"thumb"`
 }
 
-func DeleteMessage(tgtoken string, req DeleteMessageRequest) error {
+type SendAudioFileRequest struct {
+	ChatId    string
+	Performer string
+	Title     string
+	Duration  time.Duration
+	FileName  string
+	Audio     []byte
+	Thumb     []byte
+}
+
+func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
+	// https://core.telegram.org/bots/api#sending-files
+
+	var mpartBuf bytes.Buffer
+	mpart := multipart.NewWriter(&mpartBuf)
+	var formWr io.Writer
+
+	// chat_id
+	err = mpart.WriteField("chat_id", req.ChatId)
+	if err != nil {
+		return nil, fmt.Errorf("WriteField chat_id: %v", err)
+	}
+
+	// performer
+	err = mpart.WriteField("performer", req.Performer)
+	if err != nil {
+		return nil, fmt.Errorf("WriteField performer: %v", err)
+	}
+
+	// title
+	err = mpart.WriteField("title", req.Title)
+	if err != nil {
+		return nil, fmt.Errorf("WriteField title: %v", err)
+	}
+
+	// duration
+	err = mpart.WriteField("duration", strconv.Itoa(int(req.Duration.Seconds())))
+	if err != nil {
+		return nil, fmt.Errorf("WriteField duration: %v", err)
+	}
+
+	// audio
+	formWr, err = mpart.CreateFormFile("audio", req.FileName)
+	if err != nil {
+		return nil, fmt.Errorf("CreateFormFile audio: %v", err)
+	}
+	_, err = io.Copy(formWr, bytes.NewBuffer(req.Audio))
+	if err != nil {
+		return nil, fmt.Errorf("Copy audio: %v", err)
+	}
+
+	// thumb
+	formWr, err = mpart.CreateFormFile("thumb", req.FileName)
+	if err != nil {
+		return nil, fmt.Errorf("CreateFormFile thumb: %v", err)
+	}
+	_, err = io.Copy(formWr, bytes.NewBuffer(req.Thumb))
+	if err != nil {
+		return nil, fmt.Errorf("Copy thumb: %v", err)
+	}
+
+	err = mpart.Close()
+	if err != nil {
+		return nil, fmt.Errorf("multipart.Writer.Close: %v", err)
+	}
+
+	resp, err := HttpClient.Post(
+		fmt.Sprintf("%s/bot%s/sendAudio", ApiUrlBase, TgToken),
+		mpart.FormDataContentType(),
+		&mpartBuf,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Post: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var tgresp Response
+	err = json.NewDecoder(resp.Body).Decode(&tgresp)
+	if err != nil {
+		return nil, fmt.Errorf("Decode: %v", err)
+	}
+	if !tgresp.Ok {
+		return nil, fmt.Errorf("sendAudio: %s", tgresp.Description)
+	}
+
+	msg := tgresp.Result
+	msg.Id = fmt.Sprintf("%d", msg.MessageId)
+
+	audio = &msg.Audio
+
+	if audio.FileId == "" {
+		return nil, fmt.Errorf("sendAudio: Audio.FileId empty")
+	}
+
+	err = DeleteMessage(DeleteMessageRequest{
+		ChatId:    req.ChatId,
+		MessageId: msg.MessageId,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("DeleteMessage %d: %v", msg.MessageId, err)
+	}
+
+	return audio, nil
+}
+
+type SendAudioRequest struct {
+	ChatId    string `json:"chat_id"`
+	Audio     string `json:"audio"`
+	Caption   string `json:"caption"`
+	ParseMode string `json:"parse_mode"`
+}
+
+func SendAudio(req SendAudioRequest) (msg *Message, err error) {
+	// https://core.telegram.org/bots/API#sendaudio
+
+	if req.ParseMode == "" {
+		req.ParseMode = ParseMode
+	}
+
+	reqjson, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp Response
+	err = postJson(
+		fmt.Sprintf("%s/bot%s/sendAudio", ApiUrlBase, TgToken),
+		bytes.NewBuffer(reqjson),
+		&resp,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if !resp.Ok {
+		return nil, fmt.Errorf("sendAudio: %s", resp.Description)
+	}
+
+	msg = resp.Result
+	msg.Id = fmt.Sprintf("%d", msg.MessageId)
+
+	return msg, nil
+}
+
+type DeleteMessageRequest struct {
+	ChatId    string `json:"chat_id"`
+	MessageId int64  `json:"message_id"`
+}
+
+func DeleteMessage(req DeleteMessageRequest) error {
 	// https://core.telegram.org/bots/api#deletemessage
 
 	reqjson, err := json.Marshal(req)
@@ -253,7 +468,7 @@ func DeleteMessage(tgtoken string, req DeleteMessageRequest) error {
 
 	var resp Response
 	err = postJson(
-		fmt.Sprintf("%s/bot%s/deleteMessage", ApiUrlBase, tgtoken),
+		fmt.Sprintf("%s/bot%s/deleteMessage", ApiUrlBase, TgToken),
 		bytes.NewBuffer(reqjson),
 		&resp,
 	)
@@ -269,8 +484,8 @@ func DeleteMessage(tgtoken string, req DeleteMessageRequest) error {
 }
 
 type PromoteChatMemberRequest struct {
-	ChatId int64 `json:"chat_id"`
-	UserId int64 `json:"user_id"`
+	ChatId string `json:"chat_id"`
+	UserId string `json:"user_id"`
 
 	IsAnonymous         bool `json:"is_anonymous"`
 	CanManageChat       bool `json:"can_manage_chat"`
@@ -290,7 +505,7 @@ type PromoteChatMemberResponse struct {
 	Result      bool   `json:"result"`
 }
 
-func PromoteChatMember(tgtoken string, chatid, userid int64) (bool, error) {
+func PromoteChatMember(chatid, userid string) (bool, error) {
 	// https://core.telegram.org/bots/api#promotechatmember
 
 	req := PromoteChatMemberRequest{
@@ -315,7 +530,7 @@ func PromoteChatMember(tgtoken string, chatid, userid int64) (bool, error) {
 
 	var resp PromoteChatMemberResponse
 	err = postJson(
-		fmt.Sprintf("%s/bot%s/promoteChatMember", ApiUrlBase, tgtoken),
+		fmt.Sprintf("%s/bot%s/promoteChatMember", ApiUrlBase, TgToken),
 		bytes.NewBuffer(reqjson),
 		&resp,
 	)
@@ -336,10 +551,10 @@ type GetChatResponse struct {
 	Result      Chat   `json:"result"`
 }
 
-func GetChat(tgtoken string, chatid int64) (chat Chat, err error) {
+func GetChat(chatid int64) (chat Chat, err error) {
 	// TODO too many requests retry
 
-	requrl := fmt.Sprintf("%s/bot%s/getChat?chat_id=%d", ApiUrlBase, tgtoken, chatid)
+	requrl := fmt.Sprintf("%s/bot%s/getChat?chat_id=%d", ApiUrlBase, TgToken, chatid)
 	var resp GetChatResponse
 
 	err = getJson(requrl, &resp, nil)
@@ -368,8 +583,8 @@ type GetChatAdministratorsResponse struct {
 	Result      []ChatMember `json:"result"`
 }
 
-func GetChatAdministrators(tgtoken string, chatid int64) (mm []ChatMember, err error) {
-	requrl := fmt.Sprintf("%s/bot%s/getChatAdministrators?chat_id=%d", ApiUrlBase, tgtoken, chatid)
+func GetChatAdministrators(chatid int64) (mm []ChatMember, err error) {
+	requrl := fmt.Sprintf("%s/bot%s/getChatAdministrators?chat_id=%d", ApiUrlBase, TgToken, chatid)
 	var resp GetChatAdministratorsResponse
 
 	err = getJson(requrl, &resp, nil)
@@ -412,8 +627,8 @@ type GetUpdatesResponse struct {
 	Result      []Update `json:"result"`
 }
 
-func GetUpdates(tgtoken string, offset int64) (uu []Update, respjson string, err error) {
-	requrl := fmt.Sprintf("%s/bot%s/getUpdates?offset=%d", ApiUrlBase, tgtoken, offset)
+func GetUpdates(offset int64) (uu []Update, respjson string, err error) {
+	requrl := fmt.Sprintf("%s/bot%s/getUpdates?offset=%d", ApiUrlBase, TgToken, offset)
 
 	var resp GetUpdatesResponse
 	err = getJson(requrl, &resp, &respjson)
