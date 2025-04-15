@@ -139,12 +139,6 @@ type Video struct {
 	Thumb        PhotoSize `json:"thumb"`
 }
 
-type Response struct {
-	Ok          bool     `json:"ok"`
-	Description string   `json:"description"`
-	Result      *Message `json:"result"`
-}
-
 type LinkPreviewOptions struct {
 	IsDisabled bool `json:"is_disabled"`
 }
@@ -163,12 +157,10 @@ type SendMessageRequest struct {
 	LinkPreviewOptions LinkPreviewOptions `json:"link_preview_options,omitempty"`
 }
 
-type SendMessageResponse struct {
-	OK          bool   `json:"ok"`
-	Description string `json:"description"`
-	Result      struct {
-		MessageId int64 `json:"message_id"`
-	} `json:"result"`
+type Response struct {
+	Ok          bool     `json:"ok"`
+	Description string   `json:"description"`
+	Result      *Message `json:"result"`
 }
 
 func SendMessage(tgtoken string, req SendMessageRequest) (msg *Message, err error) {
