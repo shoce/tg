@@ -50,6 +50,32 @@ func Bold(text string) string {
 	return "*" + Esc(text) + "*"
 }
 
+func Italic(text string) string {
+	// https://core.telegram.org/bots/api#formatting-options
+	return "_" + Esc(text) + "_"
+}
+
+func Code(text string) string {
+	for _, c := range "\\`" {
+		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
+	}
+	return "`" + text + "`"
+}
+
+func Pre(text string) string {
+	for _, c := range "\\`" {
+		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
+	}
+	return "```" + NL + text + NL + "```"
+}
+
+func Link(text, url string) string {
+	for _, c := range "\\)" {
+		url = strings.ReplaceAll(url, string(c), "\\"+string(c))
+	}
+	return fmt.Sprintf("[%s](%s)", Esc(text), url)
+}
+
 type Message struct {
 	// https://core.telegram.org/bots/api#message
 	Id        string
