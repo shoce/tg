@@ -46,6 +46,15 @@ func Esc(text string) string {
 	return text
 }
 
+// escape except bold and italic
+func EscBI(text string) string {
+	// https://core.telegram.org/bots/api#formatting-options
+	for _, c := range "\\[]()~`>#+-=|{}.!" {
+		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
+	}
+	return text
+}
+
 func Bold(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	return "*" + Esc(text) + "*"
