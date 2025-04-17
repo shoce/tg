@@ -148,7 +148,7 @@ type SendMessageRequest struct {
 	LinkPreviewOptions LinkPreviewOptions `json:"link_preview_options,omitempty"`
 }
 
-type Response struct {
+type MessageResponse struct {
 	Ok          bool     `json:"ok"`
 	Description string   `json:"description"`
 	Result      *Message `json:"result"`
@@ -168,16 +168,12 @@ func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 		return nil, err
 	}
 
-	var resp Response
-	err = postJson(
-		fmt.Sprintf("%s/bot%s/sendMessage", ApiUrlBase, TgToken),
-		bytes.NewBuffer(reqjson),
-		&resp,
-	)
-	if err != nil {
+	requrl := fmt.Sprintf("%s/bot%s/sendMessage", ApiUrlBase, TgToken)
+	var resp MessageResponse
+
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
 		return nil, err
 	}
-
 	if !resp.Ok {
 		return nil, fmt.Errorf("sendMessage: %s", resp.Description)
 	}
@@ -230,7 +226,7 @@ func SendPhotoFile(req SendPhotoFileRequest) (photo []PhotoSize, err error) {
 	}
 	defer resp.Body.Close()
 
-	var tgresp Response
+	var tgresp MessageResponse
 	err = json.NewDecoder(resp.Body).Decode(&tgresp)
 	if err != nil {
 		return nil, fmt.Errorf("Decode: %v", err)
@@ -278,16 +274,12 @@ func SendPhoto(req SendPhotoRequest) (msg *Message, err error) {
 		return nil, err
 	}
 
-	var resp Response
-	err = postJson(
-		fmt.Sprintf("%s/bot%s/sendPhoto", ApiUrlBase, TgToken),
-		bytes.NewBuffer(reqjson),
-		&resp,
-	)
-	if err != nil {
+	requrl := fmt.Sprintf("%s/bot%s/sendPhoto", ApiUrlBase, TgToken)
+	var resp MessageResponse
+
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
 		return nil, err
 	}
-
 	if !resp.Ok {
 		return nil, fmt.Errorf("sendPhoto: %s", resp.Description)
 	}
@@ -385,7 +377,7 @@ func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
 	}
 	defer resp.Body.Close()
 
-	var tgresp Response
+	var tgresp MessageResponse
 	err = json.NewDecoder(resp.Body).Decode(&tgresp)
 	if err != nil {
 		return nil, fmt.Errorf("Decode: %v", err)
@@ -433,16 +425,12 @@ func SendAudio(req SendAudioRequest) (msg *Message, err error) {
 		return nil, err
 	}
 
-	var resp Response
-	err = postJson(
-		fmt.Sprintf("%s/bot%s/sendAudio", ApiUrlBase, TgToken),
-		bytes.NewBuffer(reqjson),
-		&resp,
-	)
-	if err != nil {
+	requrl := fmt.Sprintf("%s/bot%s/sendAudio", ApiUrlBase, TgToken)
+	var resp MessageResponse
+
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
 		return nil, err
 	}
-
 	if !resp.Ok {
 		return nil, fmt.Errorf("sendAudio: %s", resp.Description)
 	}
@@ -458,6 +446,12 @@ type DeleteMessageRequest struct {
 	MessageId int64  `json:"message_id"`
 }
 
+type BoolResponse struct {
+	Ok          bool   `json:"ok"`
+	Description string `json:"description"`
+	Result      bool   `json:"result"`
+}
+
 func DeleteMessage(req DeleteMessageRequest) error {
 	// https://core.telegram.org/bots/api#deletemessage
 
@@ -466,16 +460,12 @@ func DeleteMessage(req DeleteMessageRequest) error {
 		return err
 	}
 
-	var resp Response
-	err = postJson(
-		fmt.Sprintf("%s/bot%s/deleteMessage", ApiUrlBase, TgToken),
-		bytes.NewBuffer(reqjson),
-		&resp,
-	)
-	if err != nil {
+	requrl := fmt.Sprintf("%s/bot%s/deleteMessage", ApiUrlBase, TgToken)
+	var resp BoolResponse
+
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
 		return fmt.Errorf("postJson: %w", err)
 	}
-
 	if !resp.Ok {
 		return fmt.Errorf("deleteMessage: %s", resp.Description)
 	}
@@ -497,12 +487,6 @@ type PromoteChatMemberRequest struct {
 	CanPromoteMembers   bool `json:"can_promote_members"`
 	CanInviteUsers      bool `json:"can_invite_users"`
 	CanManageVoiceChats bool `json:"can_manage_voice_chats"`
-}
-
-type PromoteChatMemberResponse struct {
-	Ok          bool   `json:"ok"`
-	Description string `json:"description"`
-	Result      bool   `json:"result"`
 }
 
 func PromoteChatMember(chatid, userid string) (bool, error) {
@@ -528,16 +512,12 @@ func PromoteChatMember(chatid, userid string) (bool, error) {
 		return false, err
 	}
 
-	var resp PromoteChatMemberResponse
-	err = postJson(
-		fmt.Sprintf("%s/bot%s/promoteChatMember", ApiUrlBase, TgToken),
-		bytes.NewBuffer(reqjson),
-		&resp,
-	)
-	if err != nil {
+	requrl := fmt.Sprintf("%s/bot%s/promoteChatMember", ApiUrlBase, TgToken)
+	var resp BoolResponse
+
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
 		return false, fmt.Errorf("postJson: %w", err)
 	}
-
 	if !resp.Ok {
 		return false, fmt.Errorf("%s", resp.Description)
 	}
@@ -545,7 +525,7 @@ func PromoteChatMember(chatid, userid string) (bool, error) {
 	return resp.Result, nil
 }
 
-type GetChatResponse struct {
+type ChatResponse struct {
 	Ok          bool   `json:"ok"`
 	Description string `json:"description"`
 	Result      Chat   `json:"result"`
@@ -555,7 +535,7 @@ func GetChat(chatid int64) (chat Chat, err error) {
 	// TODO too many requests retry
 
 	requrl := fmt.Sprintf("%s/bot%s/getChat?chat_id=%d", ApiUrlBase, TgToken, chatid)
-	var resp GetChatResponse
+	var resp ChatResponse
 
 	err = getJson(requrl, &resp, nil)
 	if err != nil {
@@ -577,7 +557,7 @@ type ChatMember struct {
 	Status string `json:"status"`
 }
 
-type GetChatAdministratorsResponse struct {
+type ChatMembersResponse struct {
 	Ok          bool         `json:"ok"`
 	Description string       `json:"description"`
 	Result      []ChatMember `json:"result"`
@@ -585,10 +565,9 @@ type GetChatAdministratorsResponse struct {
 
 func GetChatAdministrators(chatid int64) (mm []ChatMember, err error) {
 	requrl := fmt.Sprintf("%s/bot%s/getChatAdministrators?chat_id=%d", ApiUrlBase, TgToken, chatid)
-	var resp GetChatAdministratorsResponse
+	var resp ChatMembersResponse
 
-	err = getJson(requrl, &resp, nil)
-	if err != nil {
+	if err := getJson(requrl, &resp, nil); err != nil {
 		return nil, err
 	}
 	if !resp.Ok {
@@ -621,7 +600,7 @@ type Update struct {
 	MyChatMemberUpdated ChatMemberUpdated `json:"my_chat_member"`
 }
 
-type GetUpdatesResponse struct {
+type UpdatesResponse struct {
 	Ok          bool     `json:"ok"`
 	Description string   `json:"description"`
 	Result      []Update `json:"result"`
@@ -630,7 +609,7 @@ type GetUpdatesResponse struct {
 func GetUpdates(offset int64) (uu []Update, respjson string, err error) {
 	requrl := fmt.Sprintf("%s/bot%s/getUpdates?offset=%d", ApiUrlBase, TgToken, offset)
 
-	var resp GetUpdatesResponse
+	var resp UpdatesResponse
 	err = getJson(requrl, &resp, &respjson)
 	if err != nil {
 		return nil, "", err
