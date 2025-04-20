@@ -46,10 +46,15 @@ func Esc(text string) string {
 	return text
 }
 
-// escape except bold and italic
-func EscBI(text string) string {
+// escape with exceptions
+func EscExcept(text string, except string) string {
 	// https://core.telegram.org/bots/api#formatting-options
-	for _, c := range "\\[]()~`>#+-=|{}.!" {
+	// https://pkg.go.dev/strings#ReplaceAll
+	escape := "\\[]()~`>#+-=|{}.!"
+	for _, c := range except {
+		escape = strings.ReplaceAll(escape, string(c), "")
+	}
+	for _, c := range escape {
 		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
 	}
 	return text
@@ -63,6 +68,26 @@ func Bold(text string) string {
 func Italic(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	return "_" + Esc(text) + "_"
+}
+
+func BoldItalic(text string) string {
+	// https://core.telegram.org/bots/api#formatting-options
+	return "_*" + Esc(text) + "*_"
+}
+
+func Underline(text string) string {
+	// https://core.telegram.org/bots/api#formatting-options
+	return "__" + Esc(text) + "__"
+}
+
+func BoldUnderline(text string) string {
+	// https://core.telegram.org/bots/api#formatting-options
+	return "__*" + Esc(text) + "*__"
+}
+
+func ItalicUnderline(text string) string {
+	// https://core.telegram.org/bots/api#formatting-options
+	return "___" + Esc(text) + "___"
 }
 
 func Code(text string) string {
