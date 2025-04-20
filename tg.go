@@ -82,7 +82,7 @@ func BoldUnderline(text string) string {
 
 func ItalicUnderline(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
-	return "__ _" + Esc(text) + "_ __"
+	return "_ __" + Esc(text) + "__ _"
 }
 
 func Spoiler(text string) string {
