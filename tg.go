@@ -70,11 +70,6 @@ func Italic(text string) string {
 	return "_" + Esc(text) + "_"
 }
 
-func BoldItalic(text string) string {
-	// https://core.telegram.org/bots/api#formatting-options
-	return "_*" + Esc(text) + "*_"
-}
-
 func Underline(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	return "__" + Esc(text) + "__"
@@ -87,7 +82,12 @@ func BoldUnderline(text string) string {
 
 func ItalicUnderline(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
-	return "___" + Esc(text) + "___"
+	return "__ _" + Esc(text) + "_ __"
+}
+
+func Spoiler(text string) string {
+	// https://core.telegram.org/bots/api#formatting-options
+	return "||" + Esc(text) + "||"
 }
 
 func Code(text string) string {
@@ -97,6 +97,13 @@ func Code(text string) string {
 	return "`" + text + "`"
 }
 
+func Link(text, url string) string {
+	for _, c := range "\\)" {
+		url = strings.ReplaceAll(url, string(c), "\\"+string(c))
+	}
+	return fmt.Sprintf("[%s](%s)", Esc(text), url)
+}
+
 func Pre(text string) string {
 	for _, c := range "\\`" {
 		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
@@ -104,11 +111,19 @@ func Pre(text string) string {
 	return "```" + NL + text + NL + "```"
 }
 
-func Link(text, url string) string {
-	for _, c := range "\\)" {
-		url = strings.ReplaceAll(url, string(c), "\\"+string(c))
-	}
-	return fmt.Sprintf("[%s](%s)", Esc(text), url)
+func Quote(text string) string {
+	text = Esc(text)
+	text = ">" + text
+	text = strings.ReplaceAll(text, NL, NL+">")
+	return text + NL
+}
+
+func ExpQuote(text string) string {
+	text = Esc(text)
+	text = ">" + text
+	text = strings.ReplaceAll(text, NL, NL+">")
+	text += "||"
+	return text + NL
 }
 
 type Message struct {
@@ -148,47 +163,6 @@ type Chat struct {
 	FirstName  string `json:"first_name"`
 	LastName   string `json:"last_name"`
 	InviteLink string `json:"invite_link"`
-}
-
-type PhotoSize struct {
-	FileId       string `json:"file_id"`
-	FileUniqueId string `json:"file_unique_id"`
-	Width        int64  `json:"width"`
-	Height       int64  `json:"height"`
-	FileSize     int64  `json:"file_size"`
-}
-
-type Video struct {
-	FileId       string    `json:"file_id"`
-	FileUniqueId string    `json:"file_unique_id"`
-	Width        int64     `json:"width"`
-	Height       int64     `json:"height"`
-	Duration     int64     `json:"duration"`
-	MimeType     string    `json:"mime_type"`
-	FileSize     int64     `json:"file_size"`
-	Thumb        PhotoSize `json:"thumb"`
-}
-
-type Document struct {
-	// https://core.telegram.org/bots/api#document
-}
-
-type VideoNote struct {
-	// https://core.telegram.org/bots/api#videonote
-}
-
-type Voice struct {
-	// https://core.telegram.org/bots/api#voice
-}
-
-type Location struct {
-	// https://core.telegram.org/bots/api#location
-	Latitude             float64 `json:"latitude"`
-	Longitude            float64 `json:"longitude"`
-	HorizontalAccuracy   float64 `json:"horizontal_accuracy"`
-	LivePeriod           int64   `json:"live_period"`
-	Heading              int64   `json:"heading"`
-	ProximityAlertRadius int64   `json:"proximity_alert_radius"`
 }
 
 type LinkPreviewOptions struct {
@@ -243,6 +217,14 @@ func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 	msg.Id = fmt.Sprintf("%d", msg.MessageId)
 
 	return msg, nil
+}
+
+type PhotoSize struct {
+	FileId       string `json:"file_id"`
+	FileUniqueId string `json:"file_unique_id"`
+	Width        int64  `json:"width"`
+	Height       int64  `json:"height"`
+	FileSize     int64  `json:"file_size"`
 }
 
 type SendPhotoFileRequest struct {
@@ -682,6 +664,39 @@ func GetUpdates(offset int64) (uu []Update, respjson string, err error) {
 	return resp.Result, respjson, nil
 }
 
+type Video struct {
+	FileId       string    `json:"file_id"`
+	FileUniqueId string    `json:"file_unique_id"`
+	Width        int64     `json:"width"`
+	Height       int64     `json:"height"`
+	Duration     int64     `json:"duration"`
+	MimeType     string    `json:"mime_type"`
+	FileSize     int64     `json:"file_size"`
+	Thumb        PhotoSize `json:"thumb"`
+}
+
+type Document struct {
+	// https://core.telegram.org/bots/api#document
+}
+
+type VideoNote struct {
+	// https://core.telegram.org/bots/api#videonote
+}
+
+type Voice struct {
+	// https://core.telegram.org/bots/api#voice
+}
+
+type Location struct {
+	// https://core.telegram.org/bots/api#location
+	Latitude             float64 `json:"latitude"`
+	Longitude            float64 `json:"longitude"`
+	HorizontalAccuracy   float64 `json:"horizontal_accuracy"`
+	LivePeriod           int64   `json:"live_period"`
+	Heading              int64   `json:"heading"`
+	ProximityAlertRadius int64   `json:"proximity_alert_radius"`
+}
+
 func getJson(requrl string, result interface{}, respjson *string) (err error) {
 	resp, err := HttpClient.Get(requrl)
 	if err != nil {
@@ -742,7 +757,7 @@ func postJson(requrl string, data *bytes.Buffer, result interface{}) error {
 func ts() string {
 	tnow := time.Now().UTC()
 	return fmt.Sprintf(
-		"%d%:02d%02d:%02d%02d+",
+		"%d:%02d%02d:%02d%02d+",
 		tnow.Year()%1000, tnow.Month(), tnow.Day(),
 		tnow.Hour(), tnow.Minute(),
 	)
