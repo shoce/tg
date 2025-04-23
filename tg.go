@@ -361,60 +361,47 @@ func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
 
 	var mpartBuf bytes.Buffer
 	mpart := multipart.NewWriter(&mpartBuf)
-	var formWr io.Writer
 
 	// chat_id
-	err = mpart.WriteField("chat_id", req.ChatId)
-	if err != nil {
+	if err := mpart.WriteField("chat_id", req.ChatId); err != nil {
 		return nil, fmt.Errorf("WriteField chat_id: %v", err)
 	}
 
 	// caption
-	err = mpart.WriteField("caption", req.Caption)
-	if err != nil {
+	if err := mpart.WriteField("caption", req.Caption); err != nil {
 		return nil, fmt.Errorf("WriteField caption: %v", err)
 	}
 
 	// performer
-	err = mpart.WriteField("performer", req.Performer)
-	if err != nil {
+	if err := mpart.WriteField("performer", req.Performer); err != nil {
 		return nil, fmt.Errorf("WriteField performer: %v", err)
 	}
 
 	// title
-	err = mpart.WriteField("title", req.Title)
-	if err != nil {
+	if err := mpart.WriteField("title", req.Title); err != nil {
 		return nil, fmt.Errorf("WriteField title: %v", err)
 	}
 
 	// duration
-	err = mpart.WriteField("duration", strconv.Itoa(int(req.Duration.Seconds())))
-	if err != nil {
+	if err := mpart.WriteField("duration", strconv.Itoa(int(req.Duration.Seconds()))); err != nil {
 		return nil, fmt.Errorf("WriteField duration: %v", err)
 	}
 
 	// audio
-	formWr, err = mpart.CreateFormFile("audio", req.FileName)
-	if err != nil {
+	if w, err := mpart.CreateFormFile("audio", req.FileName); err != nil {
 		return nil, fmt.Errorf("CreateFormFile audio: %v", err)
-	}
-	_, err = io.Copy(formWr, req.Audio)
-	if err != nil {
+	} else if _, err := io.Copy(w, req.Audio); err != nil {
 		return nil, fmt.Errorf("Copy audio: %v", err)
 	}
 
 	// thumb
-	formWr, err = mpart.CreateFormFile("thumb", req.FileName)
-	if err != nil {
+	if w, err := mpart.CreateFormFile("thumb", req.FileName); err != nil {
 		return nil, fmt.Errorf("CreateFormFile thumb: %v", err)
-	}
-	_, err = io.Copy(formWr, req.Thumb)
-	if err != nil {
+	} else if _, err := io.Copy(w, req.Thumb); err != nil {
 		return nil, fmt.Errorf("Copy thumb: %v", err)
 	}
 
-	err = mpart.Close()
-	if err != nil {
+	if err := mpart.Close(); err != nil {
 		return nil, fmt.Errorf("multipart.Writer.Close: %v", err)
 	}
 
