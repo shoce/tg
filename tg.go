@@ -359,6 +359,10 @@ type SendAudioFileRequest struct {
 func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
 	// https://core.telegram.org/bots/api#sending-files
 
+	if req.Audio == nil {
+		return nil, fmt.Errorf("Audio is nil")
+	}
+
 	var mpartBuf bytes.Buffer
 	mpart := multipart.NewWriter(&mpartBuf)
 
@@ -388,17 +392,19 @@ func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
 	}
 
 	// audio
-	if w, err := mpart.CreateFormFile("audio", req.FileName); err != nil {
+	if w, err := mpart.CreateFormFile("audio", safestring(req.FileName)); err != nil {
 		return nil, fmt.Errorf("CreateFormFile audio: %v", err)
 	} else if _, err := io.Copy(w, req.Audio); err != nil {
 		return nil, fmt.Errorf("Copy audio: %v", err)
 	}
 
-	// thumb
-	if w, err := mpart.CreateFormFile("thumb", req.FileName); err != nil {
-		return nil, fmt.Errorf("CreateFormFile thumb: %v", err)
-	} else if _, err := io.Copy(w, req.Thumb); err != nil {
-		return nil, fmt.Errorf("Copy thumb: %v", err)
+	if req.Thumb != nil {
+		// thumb
+		if w, err := mpart.CreateFormFile("thumb", safestring(req.FileName)); err != nil {
+			return nil, fmt.Errorf("CreateFormFile thumb: %v", err)
+		} else if _, err := io.Copy(w, req.Thumb); err != nil {
+			return nil, fmt.Errorf("Copy thumb: %v", err)
+		}
 	}
 
 	if err := mpart.Close(); err != nil {
@@ -488,6 +494,10 @@ type SendVideoFileRequest struct {
 }
 
 func SendVideoFile(req SendVideoFileRequest) (video *Video, err error) {
+	if req.Video == nil {
+		return nil, fmt.Errorf("Video is nil")
+	}
+
 	piper, pipew := io.Pipe()
 	mpartw := multipart.NewWriter(pipew)
 
