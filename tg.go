@@ -352,7 +352,7 @@ type SendAudioFileRequest struct {
 	Title     string
 	Duration  time.Duration
 	FileName  string
-	Audio     *bytes.Buffer
+	Audio     io.Reader
 	Thumb     *bytes.Buffer
 }
 
