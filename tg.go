@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 const (
@@ -346,6 +347,7 @@ type Audio struct {
 
 type SendAudioFileRequest struct {
 	ChatId    string
+	Caption   string
 	Performer string
 	Title     string
 	Duration  time.Duration
@@ -365,6 +367,12 @@ func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
 	err = mpart.WriteField("chat_id", req.ChatId)
 	if err != nil {
 		return nil, fmt.Errorf("WriteField chat_id: %v", err)
+	}
+
+	// caption
+	err = mpart.WriteField("caption", req.Caption)
+	if err != nil {
+		return nil, fmt.Errorf("WriteField caption: %v", err)
 	}
 
 	// performer
@@ -482,6 +490,115 @@ func SendAudio(req SendAudioRequest) (msg *Message, err error) {
 	msg.Id = fmt.Sprintf("%d", msg.MessageId)
 
 	return msg, nil
+}
+
+type SendVideoFileRequest struct {
+	ChatId        string
+	Caption       string
+	Video         io.Reader
+	Width, Height int
+	Duration      time.Duration
+}
+
+func SendVideoFile(req SendVideoFileRequest) (video *Video, err error) {
+	piper, pipew := io.Pipe()
+	mpartw := multipart.NewWriter(pipew)
+
+	var mparterr error
+	go func(err error) {
+		defer func() {
+			if mparterr != nil {
+				log("mparterr: %v", err)
+			}
+		}()
+
+		var formw io.Writer
+
+		defer pipew.Close()
+
+		// chat_id
+		err = mpartw.WriteField("chat_id", req.ChatId)
+		if err != nil {
+			err = fmt.Errorf("WriteField chat_id: %w", err)
+			return
+		}
+
+		// caption
+		err = mpartw.WriteField("caption", req.Caption)
+		if err != nil {
+			err = fmt.Errorf("WriteField caption: %w", err)
+			return
+		}
+
+		// width
+		err = mpartw.WriteField("width", strconv.Itoa(req.Width))
+		if err != nil {
+			err = fmt.Errorf("WriteField width: %w", err)
+			return
+		}
+
+		// height
+		err = mpartw.WriteField("height", strconv.Itoa(req.Height))
+		if err != nil {
+			err = fmt.Errorf("WriteField height: %w", err)
+			return
+		}
+
+		// duration
+		err = mpartw.WriteField("duration", strconv.Itoa(int(req.Duration.Seconds())))
+		if err != nil {
+			err = fmt.Errorf("CreateFormField(`duration`): %w", err)
+			return
+		}
+
+		// video
+		formw, err = mpartw.CreateFormFile("video", safestring(req.Caption))
+		if err != nil {
+			err = fmt.Errorf("CreateFormFile('video'): %w", err)
+			return
+		}
+		_, err = io.Copy(formw, req.Video)
+		if err != nil {
+			err = fmt.Errorf("Copy req.Video: %w", err)
+			return
+		}
+
+		if err := mpartw.Close(); err != nil {
+			err = fmt.Errorf("multipart.Writer.Close: %w", err)
+			return
+		}
+	}(mparterr)
+
+	resp, err := HttpClient.Post(
+		fmt.Sprintf("%s/bot%s/sendVideo", ApiUrl, ApiToken),
+		mpartw.FormDataContentType(),
+		piper,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if mparterr != nil {
+		return nil, err
+	}
+
+	var tgresp MessageResponse
+	err = json.NewDecoder(resp.Body).Decode(&tgresp)
+	if err != nil {
+		return nil, fmt.Errorf("Decode: %w", err)
+	}
+	if !tgresp.Ok {
+		return nil, fmt.Errorf("sendVideo: %s", tgresp.Description)
+	}
+
+	msg := tgresp.Result
+	video = &msg.Video
+	if video.FileId == "" {
+		return nil, fmt.Errorf("sendVideo: Video.FileId empty")
+	}
+
+	return video, nil
 }
 
 type DeleteMessageRequest struct {
@@ -752,6 +869,21 @@ func postJson(requrl string, data *bytes.Buffer, result interface{}) error {
 	}
 
 	return nil
+}
+
+func safestring(s string) (t string) {
+	for _, r := range s {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+			r = '.'
+		}
+		t = t + string(r)
+	}
+
+	if len([]rune(t)) > 40 {
+		t = string([]rune(t)[:40])
+	}
+
+	return t
 }
 
 func ts() string {
