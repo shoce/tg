@@ -286,14 +286,6 @@ func SendPhotoFile(req SendPhotoFileRequest) (photo []PhotoSize, err error) {
 		return nil, fmt.Errorf("sendPhoto: Photo array empty")
 	}
 
-	err = DeleteMessage(DeleteMessageRequest{
-		ChatId:    req.ChatId,
-		MessageId: msg.MessageId,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("DeleteMessage %d: %v", msg.MessageId, err)
-	}
-
 	return msg.Photo, nil
 }
 
@@ -438,14 +430,6 @@ func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
 
 	if audio.FileId == "" {
 		return nil, fmt.Errorf("sendAudio: Audio.FileId empty")
-	}
-
-	err = DeleteMessage(DeleteMessageRequest{
-		ChatId:    req.ChatId,
-		MessageId: msg.MessageId,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("DeleteMessage %d: %v", msg.MessageId, err)
 	}
 
 	return audio, nil
