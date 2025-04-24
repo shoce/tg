@@ -311,8 +311,8 @@ func SendPhoto(req SendPhotoRequest) (msg *Message, err error) {
 	}
 
 	requrl := fmt.Sprintf("%s/bot%s/sendPhoto", ApiUrl, ApiToken)
-	var resp MessageResponse
 
+	var resp MessageResponse
 	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
 		return nil, err
 	}
@@ -347,7 +347,7 @@ type SendAudioFileRequest struct {
 	Thumb     *bytes.Buffer
 }
 
-func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
+func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sending-files
 
 	if req.Audio == nil {
@@ -423,16 +423,14 @@ func SendAudioFile(req SendAudioFileRequest) (audio *Audio, err error) {
 		return nil, fmt.Errorf("sendAudio: %s", tgresp.Description)
 	}
 
-	msg := tgresp.Result
+	msg = tgresp.Result
 	msg.Id = fmt.Sprintf("%d", msg.MessageId)
 
-	audio = &msg.Audio
-
-	if audio.FileId == "" {
+	if msg.Audio.FileId == "" {
 		return nil, fmt.Errorf("sendAudio: Audio.FileId empty")
 	}
 
-	return audio, nil
+	return msg, nil
 }
 
 type SendAudioRequest struct {
@@ -455,8 +453,8 @@ func SendAudio(req SendAudioRequest) (msg *Message, err error) {
 	}
 
 	requrl := fmt.Sprintf("%s/bot%s/sendAudio", ApiUrl, ApiToken)
-	var resp MessageResponse
 
+	var resp MessageResponse
 	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
 		return nil, err
 	}
@@ -478,7 +476,7 @@ type SendVideoFileRequest struct {
 	Duration      time.Duration
 }
 
-func SendVideoFile(req SendVideoFileRequest) (video *Video, err error) {
+func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
 	if req.Video == nil {
 		return nil, fmt.Errorf("Video is nil")
 	}
@@ -576,13 +574,14 @@ func SendVideoFile(req SendVideoFileRequest) (video *Video, err error) {
 		return nil, fmt.Errorf("sendVideo: %s", tgresp.Description)
 	}
 
-	msg := tgresp.Result
-	video = &msg.Video
-	if video.FileId == "" {
+	msg = tgresp.Result
+	msg.Id = fmt.Sprintf("%d", msg.MessageId)
+
+	if msg.Video.FileId == "" {
 		return nil, fmt.Errorf("sendVideo: Video.FileId empty")
 	}
 
-	return video, nil
+	return msg, nil
 }
 
 type DeleteMessageRequest struct {
