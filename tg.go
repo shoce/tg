@@ -234,7 +234,7 @@ type SendPhotoFileRequest struct {
 	Photo    *bytes.Buffer
 }
 
-func SendPhotoFile(req SendPhotoFileRequest) (photo []PhotoSize, err error) {
+func SendPhotoFile(req SendPhotoFileRequest) (msg *Message, err error) {
 	var mpartBuf bytes.Buffer
 	mpart := multipart.NewWriter(&mpartBuf)
 	var formWr io.Writer
@@ -279,14 +279,14 @@ func SendPhotoFile(req SendPhotoFileRequest) (photo []PhotoSize, err error) {
 		return nil, fmt.Errorf("sendPhoto: %s", tgresp.Description)
 	}
 
-	msg := tgresp.Result
+	msg = tgresp.Result
 	msg.Id = fmt.Sprintf("%d", msg.MessageId)
 
 	if len(msg.Photo) == 0 {
 		return nil, fmt.Errorf("sendPhoto: Photo array empty")
 	}
 
-	return msg.Photo, nil
+	return msg, nil
 }
 
 type SendPhotoRequest struct {
