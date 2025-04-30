@@ -39,7 +39,8 @@ var (
 	ApiToken = ""
 )
 
-func Esc(text string) string {
+func Esc(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
 	for _, c := range "\\_*[]()~`>#+-=|{}.!" {
 		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
@@ -61,37 +62,44 @@ func EscExcept(text string, except string) string {
 	return text
 }
 
-func Bold(text string) string {
+func Bold(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
 	return "*" + Esc(text) + "*"
 }
 
-func Italic(text string) string {
+func Italic(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
 	return "_" + Esc(text) + "_"
 }
 
-func Underline(text string) string {
+func Underline(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
 	return "__" + Esc(text) + "__"
 }
 
-func BoldUnderline(text string) string {
+func BoldUnderline(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
 	return "__*" + Esc(text) + "*__"
 }
 
-func ItalicUnderline(text string) string {
+func ItalicUnderline(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
 	return "_ __" + Esc(text) + "__ _"
 }
 
-func Spoiler(text string) string {
+func Spoiler(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
 	return "||" + Esc(text) + "||"
 }
 
-func Code(text string) string {
+func Code(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	for _, c := range "\\`" {
 		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
 	}
@@ -105,21 +113,24 @@ func Link(text, url string) string {
 	return fmt.Sprintf("[%s](%s)", Esc(text), url)
 }
 
-func Pre(text string) string {
+func Pre(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	for _, c := range "\\`" {
 		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
 	}
 	return "```" + NL + text + NL + "```"
 }
 
-func Quote(text string) string {
+func Quote(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	text = Esc(text)
 	text = ">" + text
 	text = strings.ReplaceAll(text, NL, NL+">")
 	return text + NL
 }
 
-func ExpQuote(text string) string {
+func ExpQuote(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
 	text = Esc(text)
 	text = ">" + text
 	text = strings.ReplaceAll(text, NL, NL+">")
