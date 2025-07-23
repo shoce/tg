@@ -1,10 +1,10 @@
 /*
+
 history:
 025/0404 v1
 
-GoFmt
-GoBuildNull
-GoRun
+GoFmt GoBuildNull
+
 */
 
 package tg
@@ -238,6 +238,50 @@ func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 	msg.Id = fmt.Sprintf("%d", msg.MessageId)
 
 	return msg, nil
+}
+
+type ReactionTypeEmoji struct {
+	Type  string `json:"type"`
+	Emoji string `json:"emoji"`
+}
+
+type SetMessageReactionRequest struct {
+	// https://core.telegram.org/bots/api#setmessagereaction
+
+	ChatId    string `json:"chat_id"`
+	MessageId int64  `json:"message_id"`
+
+	Reaction []ReactionTypeEmoji `json:"reaction"`
+}
+
+func SetMessageReaction(req SetMessageReactionRequest) (err error) {
+	// https://core.telegram.org/bots/api#setmessagereaction
+
+	if DEBUG {
+		log("DEBUG req==%#v", req)
+	}
+	for i, _ := range req.Reaction {
+		req.Reaction[i].Type = "emoji"
+	}
+	reqjson, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	requrl := fmt.Sprintf("%s/bot%s/setMessageReaction", ApiUrl, ApiToken)
+	var resp BoolResponse
+
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
+		return err
+	}
+	if !resp.Ok {
+		return fmt.Errorf("setMessageReaction: %s", resp.Description)
+	}
+	if !resp.Result {
+		return fmt.Errorf("setMessageReaction: %s", resp.Description)
+	}
+
+	return nil
 }
 
 type PhotoSize struct {
