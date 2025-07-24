@@ -796,15 +796,18 @@ type ChatMemberUpdated struct {
 	ViaChatFolderInviteLink bool `json:"via_chat_folder_invite_link"`
 }
 
+// https://core.telegram.org/bots/api#update
 type Update struct {
 	UpdateId int64 `json:"update_id"`
 
-	Message           Message `json:"message"`
-	EditedMessage     Message `json:"edited_message"`
+	Message       Message `json:"message"`
+	EditedMessage Message `json:"edited_message"`
+
 	ChannelPost       Message `json:"channel_post"`
 	EditedChannelPost Message `json:"edited_channel_post"`
 
-	MyChatMemberUpdated ChatMemberUpdated `json:"my_chat_member"`
+	MyChatMember ChatMemberUpdated `json:"my_chat_member"`
+	ChatMember   ChatMemberUpdated `json:"chat_member"`
 }
 
 type UpdatesResponse struct {
