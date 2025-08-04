@@ -1,10 +1,10 @@
 /*
-
 history:
 025/0404 v1
 
-GoFmt GoBuildNull
+https://core.telegram.org/bots/api
 
+GoFmt GoBuildNull
 */
 
 package tg
@@ -295,9 +295,10 @@ type PhotoSize struct {
 type SendPhotoFileRequest struct {
 	ChatId   string
 	FileName string
-	Photo    *bytes.Buffer
+	Photo    io.Reader
 }
 
+// https://core.telegram.org/bots/api#sendphoto
 func SendPhotoFile(req SendPhotoFileRequest) (msg *Message, err error) {
 	var mpartBuf bytes.Buffer
 	mpart := multipart.NewWriter(&mpartBuf)
@@ -408,7 +409,7 @@ type SendAudioFileRequest struct {
 	Title     string
 	Duration  time.Duration
 	Audio     io.Reader
-	Thumb     *bytes.Buffer
+	Thumb     io.Reader
 }
 
 func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
