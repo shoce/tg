@@ -65,37 +65,37 @@ func EscExcept(text string, except string) string {
 func Bold(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
-	return "*" + Esc(text) + "*"
+	return "*" + text + "*"
 }
 
 func Italic(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
-	return "_" + Esc(text) + "_"
+	return "_" + text + "_"
 }
 
 func Underline(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
-	return "__" + Esc(text) + "__"
+	return "__" + text + "__"
 }
 
 func BoldUnderline(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
-	return "__*" + Esc(text) + "*__"
+	return "__*" + text + "*__"
 }
 
 func ItalicUnderline(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
-	return "_ __" + Esc(text) + "__ _"
+	return "_ __" + text + "__ _"
 }
 
 func Spoiler(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
 	// https://core.telegram.org/bots/api#formatting-options
-	return "||" + Esc(text) + "||"
+	return "||" + text + "||"
 }
 
 func Code(text string, args ...interface{}) string {
@@ -123,15 +123,13 @@ func Pre(text string, args ...interface{}) string {
 
 func Quote(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
-	text = Esc(text)
 	text = ">" + text
 	text = strings.ReplaceAll(text, NL, NL+">")
 	return text + NL
 }
 
-func ExpQuote(text string, args ...interface{}) string {
+func ExpandQuote(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
-	text = Esc(text)
 	text = ">" + text
 	text = strings.ReplaceAll(text, NL, NL+">")
 	text += "||"
