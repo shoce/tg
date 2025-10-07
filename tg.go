@@ -111,6 +111,7 @@ func Code(text string, args ...interface{}) string {
 }
 
 func Link(text, url string) string {
+	// https://core.telegram.org/bots/api#formatting-options
 	for _, c := range "\\)" {
 		url = strings.ReplaceAll(url, string(c), "\\"+string(c))
 	}
@@ -119,6 +120,7 @@ func Link(text, url string) string {
 
 func Pre(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
+	// https://core.telegram.org/bots/api#formatting-options
 	for _, c := range "\\`" {
 		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
 	}
@@ -127,6 +129,7 @@ func Pre(text string, args ...interface{}) string {
 
 func Quote(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
+	// https://core.telegram.org/bots/api#formatting-options
 	text = ">" + text
 	text = strings.ReplaceAll(text, NL, NL+">")
 	return text + NL
@@ -134,6 +137,7 @@ func Quote(text string, args ...interface{}) string {
 
 func ExpandQuote(text string, args ...interface{}) string {
 	text = fmt.Sprintf(text, args...)
+	// https://core.telegram.org/bots/api#formatting-options
 	text = ">" + text
 	text = strings.ReplaceAll(text, NL, NL+">")
 	text += "||"
