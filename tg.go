@@ -39,17 +39,16 @@ var (
 	ApiToken = ""
 )
 
+func F(text string, args ...interface{}) string {
+	return fmt.Sprintf(text, args...)
+}
+
 func Esc(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	for _, c := range "\\_*[]()~`>#+-=|{}.!" {
 		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
 	}
 	return text
-}
-
-func Escf(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
-	return Esc(text)
 }
 
 // escape with exceptions
@@ -66,44 +65,37 @@ func EscExcept(text string, except string) string {
 	return text
 }
 
-func Bold(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func Bold(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	return "*" + text + "*"
 }
 
-func Italic(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func Italic(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	return "_" + text + "_"
 }
 
-func Underline(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func Underline(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	return "__" + text + "__"
 }
 
-func BoldUnderline(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func BoldUnderline(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	return "__*" + text + "*__"
 }
 
-func ItalicUnderline(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func ItalicUnderline(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	return "_ __" + text + "__ _"
 }
 
-func Spoiler(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func Spoiler(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	return "||" + text + "||"
 }
 
-func Code(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func Code(text string) string {
 	for _, c := range "\\`" {
 		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
 	}
@@ -118,8 +110,7 @@ func Link(text, url string) string {
 	return fmt.Sprintf("[%s](%s)", Esc(text), url)
 }
 
-func Pre(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func Pre(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	for _, c := range "\\`" {
 		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
@@ -127,16 +118,14 @@ func Pre(text string, args ...interface{}) string {
 	return "```" + NL + text + NL + "```"
 }
 
-func Quote(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func Quote(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	text = ">" + text
 	text = strings.ReplaceAll(text, NL, NL+">")
 	return text + NL
 }
 
-func ExpandQuote(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func ExpandQuote(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	text = ">" + text
 	text = strings.ReplaceAll(text, NL, NL+">")
