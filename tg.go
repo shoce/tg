@@ -39,13 +39,17 @@ var (
 	ApiToken = ""
 )
 
-func Esc(text string, args ...interface{}) string {
-	text = fmt.Sprintf(text, args...)
+func Esc(text string) string {
 	// https://core.telegram.org/bots/api#formatting-options
 	for _, c := range "\\_*[]()~`>#+-=|{}.!" {
 		text = strings.ReplaceAll(text, string(c), "\\"+string(c))
 	}
 	return text
+}
+
+func Escf(text string, args ...interface{}) string {
+	text = fmt.Sprintf(text, args...)
+	return Esc(text)
 }
 
 // escape with exceptions
