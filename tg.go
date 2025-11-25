@@ -870,7 +870,7 @@ func getJson(requrl string, result interface{}, respjson *string) (err error) {
 	}
 
 	if DEBUG {
-		log("DEBUG getJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, respBody)
+		log("DEBUG getJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, string(respBody))
 	}
 	if respjson != nil {
 		*respjson = string(respBody)
@@ -879,30 +879,31 @@ func getJson(requrl string, result interface{}, respjson *string) (err error) {
 	return nil
 }
 
-func postJson(requrl string, data *bytes.Buffer, result interface{}) error {
+func postJson(requrl string, reqdata *bytes.Buffer, result interface{}) error {
 	resp, err := HttpClient.Post(
 		requrl,
 		"application/json",
-		data,
+		reqdata,
 	)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	respBody := bytes.NewBuffer(nil)
-	_, err = io.Copy(respBody, resp.Body)
+	respBodyBuf := bytes.NewBuffer(nil)
+	_, err = io.Copy(respBodyBuf, resp.Body)
 	if err != nil {
 		return fmt.Errorf("io.Copy %w", err)
 	}
+	respBody := respBodyBuf.Bytes()
 
-	err = json.NewDecoder(respBody).Decode(result)
+	err = json.NewDecoder(bytes.NewReader(respBody)).Decode(result)
 	if err != nil {
 		return fmt.Errorf("json.Decode %v", err)
 	}
 
 	if DEBUG {
-		log("DEBUG postJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, respBody)
+		log("DEBUG postJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, string(respBody))
 	}
 
 	return nil
