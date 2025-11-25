@@ -36,6 +36,8 @@ var (
 
 	DEBUG = false
 
+	FilenameMaxLen = 40
+
 	ApiUrl   = "https://api.telegram.org"
 	ApiToken = ""
 )
@@ -210,7 +212,7 @@ func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendmessage
 
 	if DEBUG {
-		log("DEBUG req %#v", req)
+		log("DEBUG SendMessage %#v", req)
 	}
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
@@ -254,7 +256,7 @@ func SetMessageReaction(req SetMessageReactionRequest) (err error) {
 	// https://core.telegram.org/bots/api#setmessagereaction
 
 	if DEBUG {
-		log("DEBUG req %#v", req)
+		log("DEBUG SetMessageReaction %#v", req)
 	}
 	for i, _ := range req.Reaction {
 		req.Reaction[i].Type = "emoji"
@@ -294,8 +296,13 @@ type SendPhotoFileRequest struct {
 	Photo    io.Reader
 }
 
-// https://core.telegram.org/bots/api#sendphoto
 func SendPhotoFile(req SendPhotoFileRequest) (msg *Message, err error) {
+	// https://core.telegram.org/bots/api#sendphoto
+
+	if DEBUG {
+		log("DEBUG SendPhotoFile %#v", req)
+	}
+
 	var mpartBuf bytes.Buffer
 	mpart := multipart.NewWriter(&mpartBuf)
 	var formWr io.Writer
@@ -359,8 +366,9 @@ func SendPhoto(req SendPhotoRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendphoto
 
 	if DEBUG {
-		log("DEBUG SendPhoto req %#v", req)
+		log("DEBUG SendPhoto %#v", req)
 	}
+
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
 	}
@@ -409,6 +417,10 @@ type SendAudioFileRequest struct {
 func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sending-files
 
+	if DEBUG {
+		log("DEBUG SendAudioFile %#v", req)
+	}
+
 	if req.Audio == nil {
 		return nil, fmt.Errorf("Audio is <nil>")
 	}
@@ -436,7 +448,7 @@ func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 		return nil, fmt.Errorf("WriteField duration %v", err)
 	}
 
-	filename := safestring(req.Performer + "." + req.Title + "..audio")
+	filename := safestring(req.Performer+"."+req.Title) + "..audio"
 
 	if w, err := mpart.CreateFormFile("audio", filename); err != nil {
 		return nil, fmt.Errorf("CreateFormFile audio %v", err)
@@ -500,6 +512,10 @@ type SendAudioRequest struct {
 func SendAudio(req SendAudioRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/API#sendaudio
 
+	if DEBUG {
+		log("DEBUG SendAudio %#v", req)
+	}
+
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
 	}
@@ -534,6 +550,12 @@ type SendVideoFileRequest struct {
 }
 
 func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
+	// https://core.telegram.org/bots/API#sendvideo
+
+	if DEBUG {
+		log("DEBUG SendVideoFile %#v", req)
+	}
+
 	if req.Video == nil {
 		return nil, fmt.Errorf("Video is <nil>")
 	}
@@ -583,7 +605,7 @@ func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
 			return
 		}
 
-		filename := safestring(req.Caption + "..video")
+		filename := safestring(req.Caption) + "..video"
 
 		formw, err = mpartw.CreateFormFile("video", filename)
 		if err != nil {
@@ -648,6 +670,10 @@ type BoolResponse struct {
 
 func DeleteMessage(req DeleteMessageRequest) error {
 	// https://core.telegram.org/bots/api#deletemessage
+
+	if DEBUG {
+		log("DEBUG DeleteMessage %#v", req)
+	}
 
 	reqjson, err := json.Marshal(req)
 	if err != nil {
@@ -917,8 +943,8 @@ func safestring(s string) (t string) {
 		t = t + string(r)
 	}
 
-	if len([]rune(t)) > 40 {
-		t = string([]rune(t)[:40])
+	if len([]rune(t)) > FilenameMaxLen {
+		t = string([]rune(t)[:FilenameMaxLen])
 	}
 
 	return t
