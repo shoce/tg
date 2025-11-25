@@ -210,7 +210,7 @@ func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendmessage
 
 	if DEBUG {
-		log("DEBUG req==%#v", req)
+		log("DEBUG req %#v", req)
 	}
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
@@ -254,7 +254,7 @@ func SetMessageReaction(req SetMessageReactionRequest) (err error) {
 	// https://core.telegram.org/bots/api#setmessagereaction
 
 	if DEBUG {
-		log("DEBUG req==%#v", req)
+		log("DEBUG req %#v", req)
 	}
 	for i, _ := range req.Reaction {
 		req.Reaction[i].Type = "emoji"
@@ -359,7 +359,7 @@ func SendPhoto(req SendPhotoRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendphoto
 
 	if DEBUG {
-		log("DEBUG SendPhoto req==%#v", req)
+		log("DEBUG SendPhoto req %#v", req)
 	}
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
@@ -477,6 +477,11 @@ func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 
 	msg = tgresp.Result
 	msg.Id = F("%d", msg.MessageId)
+
+	if DEBUG {
+		log("DEBUG sendAudio response Result %#v", tgresp.Result)
+		log("DEBUG sendAudio response Audio %#v", msg.Audio)
+	}
 
 	if msg.Audio.FileId == "" {
 		return nil, fmt.Errorf("sendAudio Audio.FileId empty")
