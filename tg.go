@@ -4,6 +4,7 @@ history:
 
 https://core.telegram.org/bots/api
 
+GoGet
 GoFmt GoBuildNull
 */
 
@@ -220,16 +221,16 @@ func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 	}
 
 	requrl := F("%s/bot%s/sendMessage", ApiUrl, ApiToken)
-	var resp MessageResponse
+	var tgresp MessageResponse
 
-	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &tgresp); err != nil {
 		return nil, err
 	}
-	if !resp.Ok {
-		return nil, fmt.Errorf("sendMessage: %s", resp.Description)
+	if !tgresp.Ok {
+		return nil, fmt.Errorf("sendMessage %s", tgresp.Description)
 	}
 
-	msg = resp.Result
+	msg = tgresp.Result
 	msg.Id = F("%d", msg.MessageId)
 
 	return msg, nil
@@ -264,16 +265,16 @@ func SetMessageReaction(req SetMessageReactionRequest) (err error) {
 	}
 
 	requrl := F("%s/bot%s/setMessageReaction", ApiUrl, ApiToken)
-	var resp BoolResponse
+	var tgresp BoolResponse
 
-	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &tgresp); err != nil {
 		return err
 	}
-	if !resp.Ok {
-		return fmt.Errorf("setMessageReaction: %s", resp.Description)
+	if !tgresp.Ok {
+		return fmt.Errorf("setMessageReaction %s", tgresp.Description)
 	}
-	if !resp.Result {
-		return fmt.Errorf("setMessageReaction: %s", resp.Description)
+	if !tgresp.Result {
+		return fmt.Errorf("setMessageReaction %s", tgresp.Description)
 	}
 
 	return nil
@@ -299,25 +300,23 @@ func SendPhotoFile(req SendPhotoFileRequest) (msg *Message, err error) {
 	mpart := multipart.NewWriter(&mpartBuf)
 	var formWr io.Writer
 
-	// chat_id
 	err = mpart.WriteField("chat_id", req.ChatId)
 	if err != nil {
-		return nil, fmt.Errorf("WriteField chat_id: %v", err)
+		return nil, fmt.Errorf("WriteField chat_id %v", err)
 	}
 
-	// photo
 	formWr, err = mpart.CreateFormFile("photo", req.FileName)
 	if err != nil {
-		return nil, fmt.Errorf("CreateFormFile photo: %v", err)
+		return nil, fmt.Errorf("CreateFormFile photo %v", err)
 	}
 	_, err = io.Copy(formWr, req.Photo)
 	if err != nil {
-		return nil, fmt.Errorf("Copy photo: %v", err)
+		return nil, fmt.Errorf("Copy photo %v", err)
 	}
 
 	err = mpart.Close()
 	if err != nil {
-		return nil, fmt.Errorf("multipartWriter.Close: %v", err)
+		return nil, fmt.Errorf("multipartWriter.Close %v", err)
 	}
 
 	resp, err := HttpClient.Post(
@@ -326,24 +325,24 @@ func SendPhotoFile(req SendPhotoFileRequest) (msg *Message, err error) {
 		&mpartBuf,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Post: %v", err)
+		return nil, fmt.Errorf("Post %v", err)
 	}
 	defer resp.Body.Close()
 
 	var tgresp MessageResponse
 	err = json.NewDecoder(resp.Body).Decode(&tgresp)
 	if err != nil {
-		return nil, fmt.Errorf("Decode: %v", err)
+		return nil, fmt.Errorf("Decode %v", err)
 	}
 	if !tgresp.Ok {
-		return nil, fmt.Errorf("sendPhoto: %s", tgresp.Description)
+		return nil, fmt.Errorf("sendPhoto %s", tgresp.Description)
 	}
 
 	msg = tgresp.Result
 	msg.Id = F("%d", msg.MessageId)
 
 	if len(msg.Photo) == 0 {
-		return nil, fmt.Errorf("sendPhoto: Photo array empty")
+		return nil, fmt.Errorf("sendPhoto Photo array empty")
 	}
 
 	return msg, nil
@@ -372,15 +371,15 @@ func SendPhoto(req SendPhotoRequest) (msg *Message, err error) {
 
 	requrl := F("%s/bot%s/sendPhoto", ApiUrl, ApiToken)
 
-	var resp MessageResponse
-	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
+	var tgresp MessageResponse
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &tgresp); err != nil {
 		return nil, err
 	}
-	if !resp.Ok {
-		return nil, fmt.Errorf("sendPhoto: %s", resp.Description)
+	if !tgresp.Ok {
+		return nil, fmt.Errorf("sendPhoto %s", tgresp.Description)
 	}
 
-	msg = resp.Result
+	msg = tgresp.Result
 	msg.Id = F("%d", msg.MessageId)
 
 	return msg, nil
@@ -411,57 +410,50 @@ func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sending-files
 
 	if req.Audio == nil {
-		return nil, fmt.Errorf("Audio is nil")
+		return nil, fmt.Errorf("Audio is <nil>")
 	}
 
 	var mpartBuf bytes.Buffer
 	mpart := multipart.NewWriter(&mpartBuf)
 
-	// chat_id
 	if err := mpart.WriteField("chat_id", req.ChatId); err != nil {
-		return nil, fmt.Errorf("WriteField chat_id: %v", err)
+		return nil, fmt.Errorf("WriteField chat_id %v", err)
 	}
 
-	// caption
 	if err := mpart.WriteField("caption", req.Caption); err != nil {
-		return nil, fmt.Errorf("WriteField caption: %v", err)
+		return nil, fmt.Errorf("WriteField caption %v", err)
 	}
 
-	// performer
 	if err := mpart.WriteField("performer", req.Performer); err != nil {
-		return nil, fmt.Errorf("WriteField performer: %v", err)
+		return nil, fmt.Errorf("WriteField performer %v", err)
 	}
 
-	// title
 	if err := mpart.WriteField("title", req.Title); err != nil {
-		return nil, fmt.Errorf("WriteField title: %v", err)
+		return nil, fmt.Errorf("WriteField title %v", err)
 	}
 
-	// duration
 	if err := mpart.WriteField("duration", strconv.Itoa(int(req.Duration.Seconds()))); err != nil {
-		return nil, fmt.Errorf("WriteField duration: %v", err)
+		return nil, fmt.Errorf("WriteField duration %v", err)
 	}
 
 	filename := safestring(req.Performer + "." + req.Title)
 
-	// audio
 	if w, err := mpart.CreateFormFile("audio", filename); err != nil {
-		return nil, fmt.Errorf("CreateFormFile audio: %v", err)
+		return nil, fmt.Errorf("CreateFormFile audio %v", err)
 	} else if _, err := io.Copy(w, req.Audio); err != nil {
-		return nil, fmt.Errorf("Copy audio: %v", err)
+		return nil, fmt.Errorf("Copy audio %v", err)
 	}
 
 	if req.Thumb != nil {
-		// thumb
 		if w, err := mpart.CreateFormFile("thumb", filename); err != nil {
-			return nil, fmt.Errorf("CreateFormFile thumb: %v", err)
+			return nil, fmt.Errorf("CreateFormFile thumb %v", err)
 		} else if _, err := io.Copy(w, req.Thumb); err != nil {
-			return nil, fmt.Errorf("Copy thumb: %v", err)
+			return nil, fmt.Errorf("Copy thumb %v", err)
 		}
 	}
 
 	if err := mpart.Close(); err != nil {
-		return nil, fmt.Errorf("multipart.Writer.Close: %v", err)
+		return nil, fmt.Errorf("multipart.Writer.Close %v", err)
 	}
 
 	resp, err := HttpClient.Post(
@@ -470,24 +462,24 @@ func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 		&mpartBuf,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Post: %v", err)
+		return nil, fmt.Errorf("Post %v", err)
 	}
 	defer resp.Body.Close()
 
 	var tgresp MessageResponse
 	err = json.NewDecoder(resp.Body).Decode(&tgresp)
 	if err != nil {
-		return nil, fmt.Errorf("Decode: %v", err)
+		return nil, fmt.Errorf("Decode %v", err)
 	}
 	if !tgresp.Ok {
-		return nil, fmt.Errorf("sendAudio: %s", tgresp.Description)
+		return nil, fmt.Errorf("sendAudio %s", tgresp.Description)
 	}
 
 	msg = tgresp.Result
 	msg.Id = F("%d", msg.MessageId)
 
 	if msg.Audio.FileId == "" {
-		return nil, fmt.Errorf("sendAudio: Audio.FileId empty")
+		return nil, fmt.Errorf("sendAudio Audio.FileId empty")
 	}
 
 	return msg, nil
@@ -514,15 +506,15 @@ func SendAudio(req SendAudioRequest) (msg *Message, err error) {
 
 	requrl := F("%s/bot%s/sendAudio", ApiUrl, ApiToken)
 
-	var resp MessageResponse
-	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
+	var tgresp MessageResponse
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &tgresp); err != nil {
 		return nil, err
 	}
-	if !resp.Ok {
-		return nil, fmt.Errorf("sendAudio: %s", resp.Description)
+	if !tgresp.Ok {
+		return nil, fmt.Errorf("sendAudio %s", tgresp.Description)
 	}
 
-	msg = resp.Result
+	msg = tgresp.Result
 	msg.Id = F("%d", msg.MessageId)
 
 	return msg, nil
@@ -538,7 +530,7 @@ type SendVideoFileRequest struct {
 
 func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
 	if req.Video == nil {
-		return nil, fmt.Errorf("Video is nil")
+		return nil, fmt.Errorf("Video is <nil>")
 	}
 
 	piper, pipew := io.Pipe()
@@ -548,7 +540,7 @@ func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
 	go func(err error) {
 		defer func() {
 			if mparterr != nil {
-				log("mparterr: %v", err)
+				log("ERROR mparterr %v", err)
 			}
 		}()
 
@@ -556,57 +548,51 @@ func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
 
 		defer pipew.Close()
 
-		// chat_id
 		err = mpartw.WriteField("chat_id", req.ChatId)
 		if err != nil {
-			err = fmt.Errorf("WriteField chat_id: %w", err)
+			err = fmt.Errorf("WriteField chat_id %w", err)
 			return
 		}
 
-		// caption
 		err = mpartw.WriteField("caption", req.Caption)
 		if err != nil {
-			err = fmt.Errorf("WriteField caption: %w", err)
+			err = fmt.Errorf("WriteField caption %w", err)
 			return
 		}
 
-		// width
 		err = mpartw.WriteField("width", strconv.Itoa(req.Width))
 		if err != nil {
-			err = fmt.Errorf("WriteField width: %w", err)
+			err = fmt.Errorf("WriteField width %w", err)
 			return
 		}
 
-		// height
 		err = mpartw.WriteField("height", strconv.Itoa(req.Height))
 		if err != nil {
-			err = fmt.Errorf("WriteField height: %w", err)
+			err = fmt.Errorf("WriteField height %w", err)
 			return
 		}
 
-		// duration
 		err = mpartw.WriteField("duration", strconv.Itoa(int(req.Duration.Seconds())))
 		if err != nil {
-			err = fmt.Errorf("CreateFormField(`duration`): %w", err)
+			err = fmt.Errorf("CreateFormField duration %w", err)
 			return
 		}
 
 		filename := safestring(req.Caption)
 
-		// video
 		formw, err = mpartw.CreateFormFile("video", filename)
 		if err != nil {
-			err = fmt.Errorf("CreateFormFile('video'): %w", err)
+			err = fmt.Errorf("CreateFormFile video %w", err)
 			return
 		}
 		_, err = io.Copy(formw, req.Video)
 		if err != nil {
-			err = fmt.Errorf("Copy req.Video: %w", err)
+			err = fmt.Errorf("Copy req.Video %w", err)
 			return
 		}
 
 		if err := mpartw.Close(); err != nil {
-			err = fmt.Errorf("multipart.Writer.Close: %w", err)
+			err = fmt.Errorf("multipart.Writer.Close %w", err)
 			return
 		}
 	}(mparterr)
@@ -628,17 +614,17 @@ func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
 	var tgresp MessageResponse
 	err = json.NewDecoder(resp.Body).Decode(&tgresp)
 	if err != nil {
-		return nil, fmt.Errorf("Decode: %w", err)
+		return nil, fmt.Errorf("Decode %w", err)
 	}
 	if !tgresp.Ok {
-		return nil, fmt.Errorf("sendVideo: %s", tgresp.Description)
+		return nil, fmt.Errorf("sendVideo %s", tgresp.Description)
 	}
 
 	msg = tgresp.Result
 	msg.Id = F("%d", msg.MessageId)
 
 	if msg.Video.FileId == "" {
-		return nil, fmt.Errorf("sendVideo: Video.FileId empty")
+		return nil, fmt.Errorf("sendVideo Video.FileId empty")
 	}
 
 	return msg, nil
@@ -664,13 +650,13 @@ func DeleteMessage(req DeleteMessageRequest) error {
 	}
 
 	requrl := F("%s/bot%s/deleteMessage", ApiUrl, ApiToken)
-	var resp BoolResponse
+	var tgresp BoolResponse
 
-	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
-		return fmt.Errorf("postJson: %w", err)
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &tgresp); err != nil {
+		return fmt.Errorf("postJson %w", err)
 	}
-	if !resp.Ok {
-		return fmt.Errorf("deleteMessage: %s", resp.Description)
+	if !tgresp.Ok {
+		return fmt.Errorf("deleteMessage %s", tgresp.Description)
 	}
 
 	return nil
@@ -716,16 +702,16 @@ func PromoteChatMember(chatid, userid string) (bool, error) {
 	}
 
 	requrl := F("%s/bot%s/promoteChatMember", ApiUrl, ApiToken)
-	var resp BoolResponse
+	var tgresp BoolResponse
 
-	if err := postJson(requrl, bytes.NewBuffer(reqjson), &resp); err != nil {
-		return false, fmt.Errorf("postJson: %w", err)
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &tgresp); err != nil {
+		return false, fmt.Errorf("postJson %w", err)
 	}
-	if !resp.Ok {
-		return false, fmt.Errorf("%s", resp.Description)
+	if !tgresp.Ok {
+		return false, fmt.Errorf("promoteChatMember %s", tgresp.Description)
 	}
 
-	return resp.Result, nil
+	return tgresp.Result, nil
 }
 
 type ChatResponse struct {
@@ -738,17 +724,17 @@ func GetChat(chatid int64) (chat Chat, err error) {
 	// TODO too many requests retry
 
 	requrl := F("%s/bot%s/getChat?chat_id=%d", ApiUrl, ApiToken, chatid)
-	var resp ChatResponse
+	var tgresp ChatResponse
 
-	err = getJson(requrl, &resp, nil)
+	err = getJson(requrl, &tgresp, nil)
 	if err != nil {
 		return Chat{}, err
 	}
-	if !resp.Ok {
-		return Chat{}, fmt.Errorf("telegram response not ok: %s", resp.Description)
+	if !tgresp.Ok {
+		return Chat{}, fmt.Errorf("getChat %s", tgresp.Description)
 	}
 
-	return resp.Result, nil
+	return tgresp.Result, nil
 }
 
 type GetChatAdministratorsRequest struct {
@@ -768,16 +754,16 @@ type ChatMembersResponse struct {
 
 func GetChatAdministrators(chatid int64) (mm []ChatMember, err error) {
 	requrl := F("%s/bot%s/getChatAdministrators?chat_id=%d", ApiUrl, ApiToken, chatid)
-	var resp ChatMembersResponse
+	var tgresp ChatMembersResponse
 
-	if err := getJson(requrl, &resp, nil); err != nil {
+	if err := getJson(requrl, &tgresp, nil); err != nil {
 		return nil, err
 	}
-	if !resp.Ok {
-		return nil, fmt.Errorf("getChatAdministrators: %s", resp.Description)
+	if !tgresp.Ok {
+		return nil, fmt.Errorf("getChatAdministrators %s", tgresp.Description)
 	}
 
-	return resp.Result, nil
+	return tgresp.Result, nil
 }
 
 type ChatMemberUpdated struct {
@@ -812,19 +798,19 @@ type UpdatesResponse struct {
 	Result      []Update `json:"result"`
 }
 
-func GetUpdates(offset int64) (uu []Update, respjson string, err error) {
+func GetUpdates(offset int64) (uu []Update, tgrespjson string, err error) {
 	requrl := F("%s/bot%s/getUpdates?offset=%d", ApiUrl, ApiToken, offset)
 
-	var resp UpdatesResponse
-	err = getJson(requrl, &resp, &respjson)
+	var tgresp UpdatesResponse
+	err = getJson(requrl, &tgresp, &tgrespjson)
 	if err != nil {
 		return nil, "", err
 	}
-	if !resp.Ok {
-		return nil, "", fmt.Errorf("telegram response not ok: %s", resp.Description)
+	if !tgresp.Ok {
+		return nil, "", fmt.Errorf("getUpdates %s", tgresp.Description)
 	}
 
-	return resp.Result, respjson, nil
+	return tgresp.Result, tgrespjson, nil
 }
 
 type Video struct {
@@ -870,16 +856,16 @@ func getJson(requrl string, result interface{}, respjson *string) (err error) {
 	var respBody []byte
 	respBody, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("io.ReadAll: %w", err)
+		return fmt.Errorf("io.ReadAll %w", err)
 	}
 
 	err = json.NewDecoder(bytes.NewBuffer(respBody)).Decode(result)
 	if err != nil {
-		return fmt.Errorf("json.Decode: %w", err)
+		return fmt.Errorf("json.Decode %w", err)
 	}
 
 	if DEBUG {
-		log("DEBUG getJson %s response ContentLength==%d Body==```"+NL+"%s"+NL+"```", requrl, resp.ContentLength, respBody)
+		log("DEBUG getJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, respBody)
 	}
 	if respjson != nil {
 		*respjson = string(respBody)
@@ -902,16 +888,16 @@ func postJson(requrl string, data *bytes.Buffer, result interface{}) error {
 	respBody := bytes.NewBuffer(nil)
 	_, err = io.Copy(respBody, resp.Body)
 	if err != nil {
-		return fmt.Errorf("io.Copy: %w", err)
+		return fmt.Errorf("io.Copy %w", err)
 	}
 
 	err = json.NewDecoder(respBody).Decode(result)
 	if err != nil {
-		return fmt.Errorf("json.Decode: %v", err)
+		return fmt.Errorf("json.Decode %v", err)
 	}
 
 	if DEBUG {
-		log("DEBUG postJson %s response ContentLength==%d Body==```"+NL+"%s"+NL+"```", requrl, resp.ContentLength, respBody)
+		log("DEBUG postJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, respBody)
 	}
 
 	return nil
