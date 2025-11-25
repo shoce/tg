@@ -436,7 +436,7 @@ func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 		return nil, fmt.Errorf("WriteField duration %v", err)
 	}
 
-	filename := safestring(req.Performer + "." + req.Title)
+	filename := safestring(req.Performer + "." + req.Title + "..audio")
 
 	if w, err := mpart.CreateFormFile("audio", filename); err != nil {
 		return nil, fmt.Errorf("CreateFormFile audio %v", err)
@@ -583,7 +583,7 @@ func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
 			return
 		}
 
-		filename := safestring(req.Caption)
+		filename := safestring(req.Caption + "..video")
 
 		formw, err = mpartw.CreateFormFile("video", filename)
 		if err != nil {
