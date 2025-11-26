@@ -36,7 +36,7 @@ var (
 
 	DEBUG = false
 
-	FilenameMaxLen = 40
+	SafestringMaxLen = 40
 
 	ApiUrl   = "https://api.telegram.org"
 	ApiToken = ""
@@ -943,8 +943,8 @@ func safestring(s string) (t string) {
 		t = t + string(r)
 	}
 
-	if len([]rune(t)) > FilenameMaxLen {
-		t = string([]rune(t)[:FilenameMaxLen])
+	if len([]rune(t)) > SafestringMaxLen {
+		t = string([]rune(t)[:SafestringMaxLen])
 	}
 
 	return t
