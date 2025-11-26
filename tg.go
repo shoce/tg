@@ -212,7 +212,7 @@ func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendmessage
 
 	if DEBUG {
-		log("DEBUG SendMessage %#v", req)
+		perr("DEBUG SendMessage %#v", req)
 	}
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
@@ -256,7 +256,7 @@ func SetMessageReaction(req SetMessageReactionRequest) (err error) {
 	// https://core.telegram.org/bots/api#setmessagereaction
 
 	if DEBUG {
-		log("DEBUG SetMessageReaction %#v", req)
+		perr("DEBUG SetMessageReaction %#v", req)
 	}
 	for i, _ := range req.Reaction {
 		req.Reaction[i].Type = "emoji"
@@ -300,7 +300,7 @@ func SendPhotoFile(req SendPhotoFileRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendphoto
 
 	if DEBUG {
-		log("DEBUG SendPhotoFile %#v", req)
+		perr("DEBUG SendPhotoFile %#v", req)
 	}
 
 	var mpartBuf bytes.Buffer
@@ -366,7 +366,7 @@ func SendPhoto(req SendPhotoRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendphoto
 
 	if DEBUG {
-		log("DEBUG SendPhoto %#v", req)
+		perr("DEBUG SendPhoto %#v", req)
 	}
 
 	if req.ParseMode == "" {
@@ -418,7 +418,7 @@ func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sending-files
 
 	if DEBUG {
-		log("DEBUG SendAudioFile %#v", req)
+		perr("DEBUG SendAudioFile %#v", req)
 	}
 
 	if req.Audio == nil {
@@ -491,8 +491,8 @@ func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 	msg.Id = F("%d", msg.MessageId)
 
 	if DEBUG {
-		log("DEBUG sendAudio response Result %#v", tgresp.Result)
-		log("DEBUG sendAudio response Audio %#v", msg.Audio)
+		perr("DEBUG sendAudio response Result %#v", tgresp.Result)
+		perr("DEBUG sendAudio response Audio %#v", msg.Audio)
 	}
 
 	if msg.Audio.FileId == "" {
@@ -513,7 +513,7 @@ func SendAudio(req SendAudioRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/API#sendaudio
 
 	if DEBUG {
-		log("DEBUG SendAudio %#v", req)
+		perr("DEBUG SendAudio %#v", req)
 	}
 
 	if req.ParseMode == "" {
@@ -553,7 +553,7 @@ func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/API#sendvideo
 
 	if DEBUG {
-		log("DEBUG SendVideoFile %#v", req)
+		perr("DEBUG SendVideoFile %#v", req)
 	}
 
 	if req.Video == nil {
@@ -567,7 +567,7 @@ func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
 	go func(err error) {
 		defer func() {
 			if mparterr != nil {
-				log("ERROR mparterr %v", err)
+				perr("ERROR mparterr %v", err)
 			}
 		}()
 
@@ -672,7 +672,7 @@ func DeleteMessage(req DeleteMessageRequest) error {
 	// https://core.telegram.org/bots/api#deletemessage
 
 	if DEBUG {
-		log("DEBUG DeleteMessage %#v", req)
+		perr("DEBUG DeleteMessage %#v", req)
 	}
 
 	reqjson, err := json.Marshal(req)
@@ -896,7 +896,7 @@ func getJson(requrl string, result interface{}, respjson *string) (err error) {
 	}
 
 	if DEBUG {
-		log("DEBUG getJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, string(respBody))
+		perr("DEBUG getJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, string(respBody))
 	}
 	if respjson != nil {
 		*respjson = string(respBody)
@@ -929,7 +929,7 @@ func postJson(requrl string, reqdata *bytes.Buffer, result interface{}) error {
 	}
 
 	if DEBUG {
-		log("DEBUG postJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, string(respBody))
+		perr("DEBUG postJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, string(respBody))
 	}
 
 	return nil
@@ -959,6 +959,7 @@ func ts() string {
 	)
 }
 
-func log(msg string, args ...interface{}) {
+func perr(msg string, args ...interface{}) {
+	msg = strings.ReplaceAll(msg, ApiToken, "[ApiToken]")
 	fmt.Fprintf(os.Stderr, ts()+" "+msg+NL, args...)
 }
