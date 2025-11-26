@@ -953,7 +953,7 @@ func safestring(s string) (t string) {
 func ts() string {
 	tnow := time.Now().In(time.FixedZone("IST", 330*60))
 	return F(
-		"%d%02d%02d:%02d%02d+",
+		"%d%02d%02d:%02d%02dॐ",
 		tnow.Year()%1000, tnow.Month(), tnow.Day(),
 		tnow.Hour(), tnow.Minute(),
 	)
