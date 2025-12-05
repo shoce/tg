@@ -25,6 +25,7 @@ import (
 )
 
 const (
+	SP = " "
 	NL = "\n"
 
 	// https://core.telegram.org/bots/api#formatting-options
@@ -960,6 +961,7 @@ func ts() string {
 }
 
 func perr(msg string, args ...interface{}) {
-	msg = strings.ReplaceAll(msg, ApiToken, "[ApiToken]")
-	fmt.Fprintf(os.Stderr, ts()+" "+msg+NL, args...)
+	msgtext := F(msg, args...)
+	msgtext = strings.ReplaceAll(msgtext, ApiToken, "[ApiToken]")
+	fmt.Fprint(os.Stderr, ts()+SP+msgtext+NL)
 }
