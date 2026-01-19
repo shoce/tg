@@ -838,6 +838,25 @@ func GetUpdates(offset int64) (uu []Update, tgrespjson string, err error) {
 	return tgresp.Result, tgrespjson, nil
 }
 
+type File struct {
+	FileId       string `json:"file_id"`
+	FileUniqueId string `json:"file_unique_id"`
+	FileSize     int64  `json:"file_size"`
+	FilePath     string `json:"file_path"`
+}
+
+func GetFile(fileid string) (tgresp File, err error) {
+	// https://core.telegram.org/bots/api#getfile
+	requrl := F("%s/bot%s/getFile?file_id=%s", ApiUrl, ApiToken, fileid)
+
+	err = getJson(requrl, &tgresp, nil)
+	if err != nil {
+		return tgresp, err
+	}
+
+	return tgresp, nil
+}
+
 type Video struct {
 	FileId       string    `json:"file_id"`
 	FileUniqueId string    `json:"file_unique_id"`
