@@ -145,14 +145,7 @@ type Message struct {
 	Chat      Chat   `json:"chat"`
 	Text      string `json:"text,omitempty"`
 
-	ReplyToMessage struct {
-		MessageId  int64  `json:"message_id"`
-		From       User   `json:"from"`
-		SenderChat Chat   `json:"sender_chat"`
-		Chat       Chat   `json:"chat"`
-		Date       int64  `json:"date"`
-		Text       string `json:"text"`
-	} `json:"reply_to_message"`
+	ReplyToMessage *Message `json:"reply_to_message"`
 
 	Audio     Audio       `json:"audio,omitempty"`
 	Document  Document    `json:"document,omitempty"`
