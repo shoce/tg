@@ -845,16 +845,26 @@ type File struct {
 	FilePath     string `json:"file_path"`
 }
 
-func GetFile(fileid string) (tgresp File, err error) {
+type FileResponse struct {
+	Ok          bool   `json:"ok"`
+	Description string `json:"description"`
+	Result      File   `json:"result"`
+}
+
+func GetFile(fileid string) (file File, err error) {
 	// https://core.telegram.org/bots/api#getfile
 	requrl := F("%s/bot%s/getFile?file_id=%s", ApiUrl, ApiToken, fileid)
 
+	var tgresp FileResponse
 	err = getJson(requrl, &tgresp, nil)
 	if err != nil {
-		return tgresp, err
+		return File{}, err
+	}
+	if !tgresp.Ok {
+		return File{}, fmt.Errorf("getFile %s", tgresp.Description)
 	}
 
-	return tgresp, nil
+	return tgresp.Result, nil
 }
 
 type Video struct {
