@@ -213,9 +213,7 @@ type MessageResponse struct {
 func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendmessage
 
-	if DEBUG {
-		perr("DEBUG SendMessage %#v", req)
-	}
+	perr("DEBUG SendMessage %#v", req)
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
 	}
@@ -255,9 +253,7 @@ type EditMessageTextRequest struct {
 func EditMessageText(req EditMessageTextRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#editmessagetext
 
-	if DEBUG {
-		perr("DEBUG EditMessageText %#v", req)
-	}
+	perr("DEBUG EditMessageText %#v", req)
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
 	}
@@ -299,9 +295,7 @@ type SetMessageReactionRequest struct {
 func SetMessageReaction(req SetMessageReactionRequest) (err error) {
 	// https://core.telegram.org/bots/api#setmessagereaction
 
-	if DEBUG {
-		perr("DEBUG SetMessageReaction %#v", req)
-	}
+	perr("DEBUG SetMessageReaction %#v", req)
 	for i, _ := range req.Reaction {
 		req.Reaction[i].Type = "emoji"
 	}
@@ -343,9 +337,7 @@ type SendPhotoFileRequest struct {
 func SendPhotoFile(req SendPhotoFileRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendphoto
 
-	if DEBUG {
-		perr("DEBUG SendPhotoFile %#v", req)
-	}
+	perr("DEBUG SendPhotoFile %#v", req)
 
 	var mpartBuf bytes.Buffer
 	mpart := multipart.NewWriter(&mpartBuf)
@@ -409,9 +401,7 @@ type SendPhotoRequest struct {
 func SendPhoto(req SendPhotoRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sendphoto
 
-	if DEBUG {
-		perr("DEBUG SendPhoto %#v", req)
-	}
+	perr("DEBUG SendPhoto %#v", req)
 
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
@@ -461,9 +451,7 @@ type SendAudioFileRequest struct {
 func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/api#sending-files
 
-	if DEBUG {
-		perr("DEBUG SendAudioFile %#v", req)
-	}
+	perr("DEBUG SendAudioFile %#v", req)
 
 	if req.Audio == nil {
 		return nil, fmt.Errorf("Audio is <nil>")
@@ -534,10 +522,8 @@ func SendAudioFile(req SendAudioFileRequest) (msg *Message, err error) {
 	msg = tgresp.Result
 	msg.Id = F("%d", msg.MessageId)
 
-	if DEBUG {
-		perr("DEBUG sendAudio response Result %#v", tgresp.Result)
-		perr("DEBUG sendAudio response Audio %#v", msg.Audio)
-	}
+	perr("DEBUG sendAudio response Result %#v", tgresp.Result)
+	perr("DEBUG sendAudio response Audio %#v", msg.Audio)
 
 	if msg.Audio.FileId == "" {
 		return nil, fmt.Errorf("sendAudio Audio.FileId empty")
@@ -556,9 +542,7 @@ type SendAudioRequest struct {
 func SendAudio(req SendAudioRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/API#sendaudio
 
-	if DEBUG {
-		perr("DEBUG SendAudio %#v", req)
-	}
+	perr("DEBUG SendAudio %#v", req)
 
 	if req.ParseMode == "" {
 		req.ParseMode = ParseMode
@@ -596,9 +580,7 @@ type SendVideoFileRequest struct {
 func SendVideoFile(req SendVideoFileRequest) (msg *Message, err error) {
 	// https://core.telegram.org/bots/API#sendvideo
 
-	if DEBUG {
-		perr("DEBUG SendVideoFile %#v", req)
-	}
+	perr("DEBUG SendVideoFile %#v", req)
 
 	if req.Video == nil {
 		return nil, fmt.Errorf("Video is <nil>")
@@ -715,9 +697,7 @@ type BoolResponse struct {
 func DeleteMessage(req DeleteMessageRequest) error {
 	// https://core.telegram.org/bots/api#deletemessage
 
-	if DEBUG {
-		perr("DEBUG DeleteMessage %#v", req)
-	}
+	perr("DEBUG DeleteMessage %#v", req)
 
 	reqjson, err := json.Marshal(req)
 	if err != nil {
@@ -968,9 +948,7 @@ func getJson(requrl string, result interface{}, respjson *string) (err error) {
 		return fmt.Errorf("json.Decode %w", err)
 	}
 
-	if DEBUG {
-		perr("DEBUG getJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, string(respBody))
-	}
+	perr("DEBUG getJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, string(respBody))
 	if respjson != nil {
 		*respjson = string(respBody)
 	}
@@ -1001,9 +979,7 @@ func postJson(requrl string, reqdata *bytes.Buffer, result interface{}) error {
 		return fmt.Errorf("json.Decode %v", err)
 	}
 
-	if DEBUG {
-		perr("DEBUG postJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, string(respBody))
-	}
+	perr("DEBUG postJson %s response ContentLength <%d> Body [-"+NL+"%s"+NL+"-]", requrl, resp.ContentLength, string(respBody))
 
 	return nil
 }
@@ -1033,7 +1009,13 @@ func ts() string {
 }
 
 func perr(msg string, args ...interface{}) {
-	msgtext := F(msg, args...)
+	if strings.HasPrefix(msg, "DEBUG ") && !DEBUG {
+		return
+	}
+	msgtext := msg
+	if len(args) > 0 {
+		msgtext = F(msgtext, args...)
+	}
 	msgtext = strings.ReplaceAll(msgtext, ApiToken, "[ApiToken]")
 	fmt.Fprint(os.Stderr, ts()+SP+msgtext+NL)
 }
