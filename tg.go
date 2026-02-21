@@ -240,6 +240,48 @@ func SendMessage(req SendMessageRequest) (msg *Message, err error) {
 	return msg, nil
 }
 
+type EditMessageTextRequest struct {
+	// https://core.telegram.org/bots/api#editmessagetext
+
+	ChatId    string `json:"chat_id"`
+	MessageId int64  `json:"message_id"`
+
+	Text      string `json:"text"`
+	ParseMode string `json:"parse_mode,omitempty"`
+
+	LinkPreviewOptions LinkPreviewOptions `json:"link_preview_options,omitempty"`
+}
+
+func EditMessageText(req EditMessageTextRequest) (msg *Message, err error) {
+	// https://core.telegram.org/bots/api#editmessagetext
+
+	if DEBUG {
+		perr("DEBUG EditMessageText %#v", req)
+	}
+	if req.ParseMode == "" {
+		req.ParseMode = ParseMode
+	}
+	reqjson, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	requrl := F("%s/bot%s/editMessageText", ApiUrl, ApiToken)
+	var tgresp MessageResponse
+
+	if err := postJson(requrl, bytes.NewBuffer(reqjson), &tgresp); err != nil {
+		return nil, err
+	}
+	if !tgresp.Ok {
+		return nil, fmt.Errorf("editMessageText %s", tgresp.Description)
+	}
+
+	msg = tgresp.Result
+	msg.Id = F("%d", msg.MessageId)
+
+	return msg, nil
+}
+
 type ReactionTypeEmoji struct {
 	Type  string `json:"type"`
 	Emoji string `json:"emoji"`
