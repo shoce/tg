@@ -4,8 +4,7 @@ history:
 
 https://core.telegram.org/bots/api
 
-GoGet
-GoFmt GoBuildNull
+GoFmt GoFixDiff GoBuildNull
 */
 
 package tg
@@ -140,10 +139,14 @@ func ExpandQuote(text string) string {
 type Message struct {
 	// https://core.telegram.org/bots/api#message
 	Id        string
-	MessageId int64  `json:"message_id"`
-	From      User   `json:"from,omitempty"`
-	Chat      Chat   `json:"chat"`
-	Text      string `json:"text,omitempty"`
+	MessageId int64 `json:"message_id"`
+
+	From       User   `json:"from,omitempty"`
+	SenderChat Chat   `json:"sender_chat"`
+	Date       uint64 `json:"date"`
+	Chat       Chat   `json:"chat"`
+
+	Text string `json:"text,omitempty"`
 
 	ReplyToMessage *Message `json:"reply_to_message"`
 
@@ -158,6 +161,11 @@ type Message struct {
 	ShowCaptionAboveMedia *bool  `json:"show_caption_above_media,omitempty"`
 
 	Location Location `json:"location,omitempty"`
+
+	NewChatMembers []User `json:"new_chat_members"`
+	LeftChatMember *User  `json:"left_chat_member"`
+
+	NewChatTitle *string `json:"new_chat_title"`
 }
 
 type User struct {
