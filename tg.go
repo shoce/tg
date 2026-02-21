@@ -176,6 +176,7 @@ type User struct {
 	Username  string `json:"username"`
 }
 
+// https://core.telegram.org/bots/api#chat
 type Chat struct {
 	Id         int64  `json:"id"`
 	Type       string `json:"type"`
@@ -184,6 +185,18 @@ type Chat struct {
 	FirstName  string `json:"first_name"`
 	LastName   string `json:"last_name"`
 	InviteLink string `json:"invite_link"`
+}
+
+// https://core.telegram.org/bots/api#chatfullinfo
+type ChatFullInfo struct {
+	Id          int64  `json:"id"`
+	Type        string `json:"type"`
+	Title       string `json:"title"`
+	Username    string `json:"username"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Description string `json:"description"`
+	InviteLink  string `json:"invite_link"`
 }
 
 type LinkPreviewOptions struct {
@@ -775,18 +788,24 @@ type ChatResponse struct {
 	Result      Chat   `json:"result"`
 }
 
-func GetChat(chatid int64) (chat Chat, err error) {
+type ChatFullInfoResponse struct {
+	Ok          bool         `json:"ok"`
+	Description string       `json:"description"`
+	Result      ChatFullInfo `json:"result"`
+}
+
+func GetChat(chatid int64) (chat ChatFullInfo, err error) {
 	// TODO too many requests retry
 
 	requrl := F("%s/bot%s/getChat?chat_id=%d", ApiUrl, ApiToken, chatid)
-	var tgresp ChatResponse
+	var tgresp ChatFullInfoResponse
 
 	err = getJson(requrl, &tgresp, nil)
 	if err != nil {
-		return Chat{}, err
+		return ChatFullInfo{}, err
 	}
 	if !tgresp.Ok {
-		return Chat{}, fmt.Errorf("getChat %s", tgresp.Description)
+		return ChatFullInfo{}, fmt.Errorf("getChat %s", tgresp.Description)
 	}
 
 	return tgresp.Result, nil
