@@ -187,16 +187,27 @@ type Chat struct {
 	InviteLink string `json:"invite_link"`
 }
 
+// https://core.telegram.org/bots/api#chatphoto
+type ChatPhoto struct {
+	SmallFileId string `json:"small_file_id"`
+	BigFileId   string `json:"big_file_id"`
+}
+
 // https://core.telegram.org/bots/api#chatfullinfo
 type ChatFullInfo struct {
-	Id          int64  `json:"id"`
-	Type        string `json:"type"`
-	Title       string `json:"title"`
-	Username    string `json:"username"`
-	FirstName   string `json:"first_name"`
-	LastName    string `json:"last_name"`
+	Id    int64  `json:"id"`
+	Type  string `json:"type"`
+	Title string `json:"title"`
+
 	Description string `json:"description"`
-	InviteLink  string `json:"invite_link"`
+
+	Photo ChatPhoto `json:"photo"`
+
+	Username  string `json:"username"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+
+	InviteLink string `json:"invite_link"`
 }
 
 type LinkPreviewOptions struct {
