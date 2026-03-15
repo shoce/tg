@@ -1029,23 +1029,20 @@ func safestring(s string) (t string) {
 	return t
 }
 
-func ts() string {
-	tnow := time.Now().In(time.FixedZone("IST", 330*60))
-	return F(
-		"%d%02d%02d:%02d%02dॐ",
-		tnow.Year()%1000, tnow.Month(), tnow.Day(),
-		tnow.Hour(), tnow.Minute(),
-	)
-}
-
 func perr(msg string, args ...interface{}) {
 	if strings.HasPrefix(msg, "DEBUG ") && !DEBUG {
 		return
 	}
+	tnow := time.Now().In(time.FixedZone("IST", 330*60))
+	ts := F(
+		"<%d:%02d%02d:%02d%02dॐ",
+		tnow.Year()%1000, tnow.Month(), tnow.Day(),
+		tnow.Hour(), tnow.Minute(),
+	)
 	msgtext := msg
 	if len(args) > 0 {
 		msgtext = F(msgtext, args...)
 	}
 	msgtext = strings.ReplaceAll(msgtext, ApiToken, "[ApiToken]")
-	fmt.Fprint(os.Stderr, ts()+SP+msgtext+NL)
+	fmt.Fprint(os.Stderr, ts+SP+msgtext+NL)
 }
