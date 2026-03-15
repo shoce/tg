@@ -1035,7 +1035,7 @@ func perr(msg string, args ...interface{}) {
 	}
 	tnow := time.Now().In(time.FixedZone("IST", 330*60))
 	ts := F(
-		"<%d:%02d%02d:%02d%02dॐ",
+		"<%d:%02d%02d:%02d%02dॐ>",
 		tnow.Year()%1000, tnow.Month(), tnow.Day(),
 		tnow.Hour(), tnow.Minute(),
 	)
