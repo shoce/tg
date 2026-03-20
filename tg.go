@@ -27,6 +27,8 @@ const (
 	SP = " "
 	NL = "\n"
 
+	ApiUrlDef = "https://api.telegram.org"
+
 	// https://core.telegram.org/bots/api#formatting-options
 	ParseMode = "MarkdownV2"
 )
@@ -38,7 +40,7 @@ var (
 
 	SafestringMaxLen = 40
 
-	ApiUrl   = "https://api.telegram.org"
+	ApiUrl   = ApiUrlDef
 	ApiToken = ""
 )
 
