@@ -1,11 +1,10 @@
 /*
 history:
 025/0404 v1
-
-https://core.telegram.org/bots/api
-
-GoFmt GoFixDiff GoBuildNull
 */
+
+// https://core.telegram.org/bots/api
+// GoFmt GoFixDiff GoBuildNull
 
 package tg
 
